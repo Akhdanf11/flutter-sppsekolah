@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import '../database_helper.dart';
 
 class ManageStudentsPage extends StatefulWidget {
-  final String email; // Add this line
+  final String email;
 
-  ManageStudentsPage({required this.email}); // Update constructor to accept email
+  ManageStudentsPage({required this.email});
 
   @override
   _ManageStudentsPageState createState() => _ManageStudentsPageState();
@@ -31,7 +31,7 @@ class _ManageStudentsPageState extends State<ManageStudentsPage> {
     final db = await DatabaseHelper.instance.database;
     await db.update(
       'students',
-      {'is_active': isActive ? 0 : 1},
+      {'is_active': isActive ? 1 : 0}, // Active (1) or Inactive (0)
       where: 'id = ?',
       whereArgs: [studentId],
     );
@@ -41,22 +41,32 @@ class _ManageStudentsPageState extends State<ManageStudentsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Manage Students')),
-      body: ListView.builder(
-        itemCount: _students.length,
-        itemBuilder: (context, index) {
-          final student = _students[index];
-          return ListTile(
-            title: Text(student['student_name']),
-            subtitle: Text('NIS: ${student['nis']}'),
-            trailing: Switch(
-              value: student['is_active'] == 1,
-              onChanged: (value) {
-                _toggleStudentStatus(student['id'], student['is_active'] == 1);
-              },
-            ),
-          );
-        },
+      appBar: AppBar(
+        title: Text('Kelola Siswa'),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: _students.map((student) {
+            return Card(
+              margin: EdgeInsets.all(8.0),
+              elevation: 4,
+              child: ListTile(
+                contentPadding: EdgeInsets.all(16.0),
+                title: Text(
+                  student['student_name'],
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text('NIS: ${student['nis']}'),
+                trailing: Switch(
+                  value: student['is_active'] == 1, // Active (1) or Inactive (0)
+                  onChanged: (value) {
+                    _toggleStudentStatus(student['id'], value);
+                  },
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }

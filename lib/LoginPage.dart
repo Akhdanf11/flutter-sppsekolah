@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'database_helper.dart'; // Ensure this import matches your project structure
+import 'database_helper.dart'; // Pastikan import ini sesuai dengan struktur proyek Anda
 
 class LoginPage extends StatefulWidget {
   @override
@@ -10,43 +10,48 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  String _selectedRole = 'Siswa'; // Default role
-  bool _isPasswordVisible = false; // Password visibility toggle
+  String _selectedRole = 'Siswa'; // Peran default
+  bool _isPasswordVisible = false; // Toggle visibilitas password
 
   void _login() async {
     final email = _emailController.text;
     final password = _passwordController.text;
 
     if (_selectedRole == 'Siswa') {
-      // Student login
-      var student = await DatabaseHelper.instance.loginStudent(email, password);
+      // Login siswa
+      final student = await DatabaseHelper.instance.loginStudent(email, password);
       if (student != null) {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/student_main_page',
-              (route) => false, // Remove all previous routes
-          arguments: {
-            'nis': student['nis'],
-            'email': student['email'],
-            'student_name': student['student_name'], // Send student_name
-            'student_id': student['student_id'], // Send student_id
-          },
-        );
+        if (student['is_active'] == 0) {
+          // Menangani siswa yang tidak aktif
+          _showError('Akun Anda tidak aktif. Silakan hubungi administrator.');
+        } else {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/student_main_page',
+                (route) => false, // Hapus semua route sebelumnya
+            arguments: {
+              'nis': student['nis'],
+              'email': student['email'],
+              'student_name': student['student_name'], // Kirim student_name
+              'student_id': student['id'], // Kirim student_id
+            },
+          );
+        }
       } else {
-        _showError('Login failed. Please check your credentials or register.');
+        _showError('Login gagal. Periksa kredensial Anda atau pendaftaran.');
       }
     } else if (_selectedRole == 'Tata Usaha') {
-      // Staff login
-      var staff = await DatabaseHelper.instance.loginStaff(email, password);
+      // Login staff
+      final staff = await DatabaseHelper.instance.loginStaff(email, password);
       if (staff != null) {
         Navigator.pushNamedAndRemoveUntil(
           context,
-          '/tumain_page', // Updated route name
-              (route) => false, // Remove all previous routes
-          arguments: staff['email'] ?? '', // Ensure correct argument type
+          '/tumain_page', // Nama route yang diperbarui
+              (route) => false, // Hapus semua route sebelumnya
+          arguments: staff['email'] ?? '', // Pastikan tipe argumen benar
         );
       } else {
-        _showError('Login failed. Please check your credentials or register.');
+        _showError('Login gagal. Periksa kredensial Anda atau pendaftaran.');
       }
     }
   }
@@ -62,7 +67,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Login'),
+        title: Text('Masuk'),
         automaticallyImplyLeading: false,
         backgroundColor: Colors.blueAccent,
       ),
@@ -74,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               SizedBox(height: 20),
               Text(
-                'Login',
+                'Masuk',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 20),
@@ -92,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
                 controller: _passwordController,
                 obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
-                  labelText: 'Password',
+                  labelText: 'Kata Sandi',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
                   suffixIcon: IconButton(
@@ -127,19 +132,20 @@ class _LoginPageState extends State<LoginPage> {
                   });
                 },
                 decoration: InputDecoration(
-                  labelText: 'Role',
+                  labelText: 'Peran',
                   border: OutlineInputBorder(),
                 ),
               ),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _login,
-                child: Text('Login'),
+                child: Text('Masuk'),
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.blueAccent, // Button text color
-                  padding: EdgeInsets.symmetric(vertical: 16), // Button height
-                  textStyle: TextStyle(fontSize: 18), // Button text size
-                  minimumSize: Size(double.infinity, 50), // Button width
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.blueAccent, // Warna teks tombol
+                  padding: EdgeInsets.symmetric(vertical: 16), // Tinggi tombol
+                  textStyle: TextStyle(fontSize: 18), // Ukuran teks tombol
+                  minimumSize: Size(double.infinity, 50), // Lebar tombol
                 ),
               ),
               SizedBox(height: 20),
@@ -148,7 +154,7 @@ class _LoginPageState extends State<LoginPage> {
                   Navigator.pushNamed(context, '/register');
                 },
                 child: Text(
-                  "Don't have an account? Register",
+                  "Belum punya akun? Daftar",
                   style: TextStyle(color: Colors.blueAccent),
                 ),
               ),

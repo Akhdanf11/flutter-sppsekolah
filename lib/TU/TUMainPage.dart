@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'ManageSiswa.dart';
 import 'ManageSPP.dart';
 import 'ProfileTUPage.dart';
+import 'ReportPage.dart';
 
 class TUMainPage extends StatefulWidget {
   final String email;
@@ -17,8 +18,8 @@ class _TUMainPageState extends State<TUMainPage> {
 
   List<Widget> _getPages() {
     return [
-      HomePage(email: widget.email), // Pass email to HomePage
-      ProfileTUPage(email: widget.email), // Profile page with email
+      HomePage(email: widget.email), // Update: Pass email to HomePage
+      ProfileTUPage(email: widget.email),
     ];
   }
 
@@ -34,20 +35,20 @@ class _TUMainPageState extends State<TUMainPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Logout'),
-          content: Text('Are you sure you want to logout?'),
+          content: Text('Apakah Anda yakin ingin keluar?'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); // Close dialog
               },
-              child: Text('Cancel'),
+              child: Text('Batal'),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 Navigator.of(context).pushReplacementNamed('/login'); // Redirect to login page
               },
-              child: Text('Logout'),
+              child: Text('Keluar'),
             ),
           ],
         );
@@ -59,7 +60,7 @@ class _TUMainPageState extends State<TUMainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tata Usaha Dashboard'),
+        title: Text('Dashboard Tata Usaha'),
         backgroundColor: Colors.blueAccent,
       ),
       body: _getPages()[_selectedIndex],
@@ -67,24 +68,26 @@ class _TUMainPageState extends State<TUMainPage> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Home',
+            label: 'Beranda',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: 'Profile',
+            label: 'Profil',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.logout),
-            label: 'Logout',
+            label: 'Keluar',
           ),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.blueAccent,
+        unselectedItemColor: Colors.grey,
+        backgroundColor: Colors.white,
         onTap: (index) {
           if (index == 2) {
             _showLogoutDialog(context); // Handle logout separately
           } else {
-            _onItemTapped(index); // Navigate between Home and Profile
+            _onItemTapped(index); // Navigate between pages
           }
         },
       ),
@@ -104,11 +107,11 @@ class HomePage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Welcome, Tata Usaha!', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          Text('Selamat Datang, Tata Usaha!', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           SizedBox(height: 20),
           DashboardCard(
             icon: Icons.people,
-            title: 'Manage Students',
+            title: 'Kelola Siswa',
             onPressed: () {
               Navigator.push(
                 context,
@@ -119,11 +122,22 @@ class HomePage extends StatelessWidget {
           SizedBox(height: 10),
           DashboardCard(
             icon: Icons.attach_money,
-            title: 'Manage SPP',
+            title: 'Kelola SPP',
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ManageSPPPage(email: email)),
+              );
+            },
+          ),
+          SizedBox(height: 10),
+          DashboardCard(
+            icon: Icons.book,
+            title: 'Data Laporan',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ReportPage()),
               );
             },
           ),

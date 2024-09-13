@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../database_helper.dart'; // Ensure this path is correct based on your file structure
+import '../database_helper.dart'; // Pastikan path ini benar berdasarkan struktur file Anda
 
 class ProfileTUPage extends StatefulWidget {
   final String email;
@@ -38,7 +38,7 @@ class _ProfileTUPageState extends State<ProfileTUPage> {
     final confirmPassword = _confirmPasswordController.text.trim();
 
     if (newPassword != confirmPassword) {
-      _showError('Passwords do not match!');
+      _showError('Kata sandi baru tidak cocok!');
       return;
     }
 
@@ -49,16 +49,16 @@ class _ProfileTUPageState extends State<ProfileTUPage> {
 
       if (staff != null) {
         await db.updateStaffPassword(widget.email, newPassword);
-        _showSuccess('Password changed successfully!');
+        _showSuccess('Kata sandi berhasil diubah!');
 
         _currentPasswordController.clear();
         _newPasswordController.clear();
         _confirmPasswordController.clear();
       } else {
-        _showError('Current password is incorrect!');
+        _showError('Kata sandi saat ini salah!');
       }
     } catch (e) {
-      _showError('Error changing password: $e');
+      _showError('Kesalahan saat mengubah kata sandi: $e');
     }
   }
 
@@ -73,6 +73,7 @@ class _ProfileTUPageState extends State<ProfileTUPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Atur warna latar belakang sesuai keinginan
       body: _profileData == null
           ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -92,80 +93,87 @@ class _ProfileTUPageState extends State<ProfileTUPage> {
   Widget _buildProfileInfo() {
     if (_profileData == null) return SizedBox.shrink();
 
-    return Card(
-      elevation: 5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Name: ${_profileData!['name'] ?? 'N/A'}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
-            Text('NIP: ${_profileData!['nip'] ?? 'N/A'}', style: TextStyle(fontSize: 16)),
-            SizedBox(height: 8),
-            Text('Email: ${_profileData!['email'] ?? 'N/A'}', style: TextStyle(fontSize: 16)),
-          ],
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.9, // Mengatur lebar Card sesuai persentase lebar layar
+      child: Card(
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Nama: ${_profileData!['name'] ?? 'Tidak Diketahui'}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              SizedBox(height: 8),
+              Text('NIP: ${_profileData!['nip'] ?? 'Tidak Diketahui'}', style: TextStyle(fontSize: 16)),
+              SizedBox(height: 8),
+              Text('Email: ${_profileData!['email'] ?? 'Tidak Diketahui'}', style: TextStyle(fontSize: 16)),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildPasswordChangeSection() {
-    return Card(
-      elevation: 5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Change Password', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 16),
-            TextField(
-              controller: _currentPasswordController,
-              decoration: InputDecoration(
-                labelText: 'Current Password',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock),
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.9, // Mengatur lebar Card sesuai persentase lebar layar
+      child: Card(
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Ubah Kata Sandi', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              SizedBox(height: 16),
+              TextField(
+                controller: _currentPasswordController,
+                decoration: InputDecoration(
+                  labelText: 'Kata Sandi Saat Ini',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.lock),
+                ),
+                obscureText: true,
               ),
-              obscureText: true,
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _newPasswordController,
-              decoration: InputDecoration(
-                labelText: 'New Password',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock),
+              SizedBox(height: 16),
+              TextField(
+                controller: _newPasswordController,
+                decoration: InputDecoration(
+                  labelText: 'Kata Sandi Baru',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.lock),
+                ),
+                obscureText: true,
               ),
-              obscureText: true,
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _confirmPasswordController,
-              decoration: InputDecoration(
-                labelText: 'Confirm New Password',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock),
+              SizedBox(height: 16),
+              TextField(
+                controller: _confirmPasswordController,
+                decoration: InputDecoration(
+                  labelText: 'Konfirmasi Kata Sandi Baru',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.lock),
+                ),
+                obscureText: true,
               ),
-              obscureText: true,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _changePassword,
-              child: Text('Change Password'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                padding: EdgeInsets.symmetric(vertical: 14),
-                textStyle: TextStyle(fontSize: 16),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _changePassword,
+                child: Text('Ubah Kata Sandi'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 18),
+                  textStyle: TextStyle(fontSize: 16),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

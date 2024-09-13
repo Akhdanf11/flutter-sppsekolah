@@ -53,7 +53,7 @@ class _StudentPaymentPageState extends State<StudentPaymentPage> {
     final amount = double.tryParse(_amountController.text) ?? 0.0;
     if (amount != _standardAmount) {
       setState(() {
-        _amountError = 'The amount must be exactly equal to the amount due.';
+        _amountError = 'Jumlah harus sama persis dengan jumlah yang harus dibayar.';
       });
       return;
     } else {
@@ -67,7 +67,7 @@ class _StudentPaymentPageState extends State<StudentPaymentPage> {
       final existingPayment = await DatabaseHelper.instance.getPaymentByMonth(widget.nis, _selectedDate.month, _selectedDate.year);
       if (existingPayment.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Payment for this month has already been recorded.')),
+          SnackBar(content: Text('Pembayaran untuk bulan ini sudah tercatat.')),
         );
         return;
       }
@@ -88,7 +88,7 @@ class _StudentPaymentPageState extends State<StudentPaymentPage> {
       await DatabaseHelper.instance.updateSppPaidStatus(widget.nis);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Payment recorded successfully')),
+        SnackBar(content: Text('Pembayaran berhasil dicatat.')),
       );
 
       Navigator.of(context).pop(true); // Return true to indicate success
@@ -104,25 +104,65 @@ class _StudentPaymentPageState extends State<StudentPaymentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Student Payment'),
+        title: Text('Pembayaran Siswa'),
       ),
-      body: Padding(
+    body: SingleChildScrollView(
+      child: Padding(
+      padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildProfileCard(),
+              SizedBox(height: 20.0),
+              _buildPaymentForm(),
+            ],
+          ),
+      ),
+      ),
+    );
+  }
+
+  Widget _buildProfileCard() {
+    return Card(
+      elevation: 5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Student Name: $_studentName'),
+            Text('Nama Siswa: $_studentName', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 8.0),
-            Text('NIS: $_nis'),
+            Text('NIS: $_nis', style: TextStyle(fontSize: 16)),
             SizedBox(height: 8.0),
-            Text('VA Number: $_vaNumber'),
-            SizedBox(height: 16.0),
-            Text('Amount Due: ${formatCurrency(_standardAmount)}'),
+            Text('Nomor VA: $_vaNumber', style: TextStyle(fontSize: 16)),
+            SizedBox(height: 8.0),
+            Text('Jumlah yang Harus Dibayar: ${formatCurrency(_standardAmount)}', style: TextStyle(fontSize: 16)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPaymentForm() {
+    return Card(
+      elevation: 5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Formulir Pembayaran', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 16.0),
             TextField(
               controller: _amountController,
               decoration: InputDecoration(
-                labelText: 'Amount to Pay',
+                labelText: 'Jumlah Pembayaran',
                 errorText: _amountError.isNotEmpty ? _amountError : null,
                 border: OutlineInputBorder(),
               ),
@@ -130,7 +170,7 @@ class _StudentPaymentPageState extends State<StudentPaymentPage> {
               onChanged: (value) {
                 if (double.tryParse(value) != _standardAmount) {
                   setState(() {
-                    _amountError = 'The amount must be exactly equal to the amount due.';
+                    _amountError = 'Jumlah harus sesuai.';
                   });
                 } else {
                   setState(() {
@@ -139,10 +179,16 @@ class _StudentPaymentPageState extends State<StudentPaymentPage> {
                 }
               },
             ),
-            SizedBox(height: 16.0),
+            SizedBox(height: 20.0),
             ElevatedButton(
               onPressed: _recordPayment,
-              child: Text('Submit Payment'),
+              child: Text('Kirim Pembayaran'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: 14, horizontal: 18),
+                textStyle: TextStyle(fontSize: 16),
+              ),
             ),
           ],
         ),

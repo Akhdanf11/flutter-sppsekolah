@@ -13,8 +13,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _nisOrNipController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
 
-  String _selectedRole = 'Siswa'; // Default role
-  bool _isPasswordVisible = false; // Password visibility toggle
+  String _selectedRole = 'Siswa'; // Peran default
+  bool _isPasswordVisible = false; // Toggle visibilitas kata sandi
 
   Future<void> _register() async {
     final email = _emailController.text.trim();
@@ -24,20 +24,20 @@ class _RegisterPageState extends State<RegisterPage> {
     final name = _nameController.text.trim();
 
     if (email.isEmpty || password.isEmpty || nisOrNip.isEmpty || name.isEmpty) {
-      _showError('Please fill in all fields!');
+      _showError('Silakan lengkapi semua kolom!');
       return;
     }
 
-    // Validate NIS/NIP to ensure it contains only digits
+    // Validasi NIS/NIP untuk memastikan hanya berisi angka
     if (!RegExp(r'^[0-9]+$').hasMatch(nisOrNip)) {
-      _showError('NIS/NIP must contain only numbers!');
+      _showError('NIS/NIP harus berisi angka saja!');
       return;
     }
 
     try {
-      bool emailExists = await DatabaseHelper.instance.isEmailTaken(email); // Ensure you await
-      if (emailExists) { // Handle the case where emailExists could be null
-        _showError('Email is already registered!');
+      bool emailExists = await DatabaseHelper.instance.isEmailTaken(email); // Pastikan menunggu
+      if (emailExists) { // Tangani kasus di mana emailExists bisa null
+        _showError('Email sudah terdaftar!');
         return;
       }
 
@@ -56,12 +56,12 @@ class _RegisterPageState extends State<RegisterPage> {
           name,
         );
       } else {
-        _showError('Invalid role! Use Siswa or Tata Usaha.');
+        _showError('Peran tidak valid! Gunakan Siswa atau Tata Usaha.');
         return;
       }
       Navigator.pushReplacementNamed(context, '/login');
     } catch (e) {
-      _showError('Error during registration: $e');
+      _showError('Terjadi kesalahan saat registrasi: $e');
     }
   }
 
@@ -76,7 +76,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Register'),
+        title: Text('Registrasi'),
         backgroundColor: Colors.blueAccent,
       ),
       body: SafeArea(
@@ -87,7 +87,7 @@ class _RegisterPageState extends State<RegisterPage> {
             children: [
               SizedBox(height: 20),
               Text(
-                'Register',
+                'Registrasi',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 20),
@@ -105,7 +105,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: _passwordController,
                 obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
-                  labelText: 'Password',
+                  labelText: 'Kata Sandi',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
                   suffixIcon: IconButton(
@@ -140,7 +140,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   });
                 },
                 decoration: InputDecoration(
-                  labelText: 'Role',
+                  labelText: 'Peran',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -160,14 +160,14 @@ class _RegisterPageState extends State<RegisterPage> {
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: 'Name',
+                  labelText: 'Nama',
                   border: OutlineInputBorder(),
                 ),
               ),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _register,
-                child: Text('Register'),
+                child: Text('Registrasi'),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
                   backgroundColor: Colors.blueAccent,
@@ -181,7 +181,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 onPressed: () {
                   Navigator.pushReplacementNamed(context, '/login');
                 },
-                child: Text("Already have an account? Login"),
+                child: Text("Sudah punya akun? Masuk"),
               ),
             ],
           ),

@@ -37,15 +37,15 @@ class _ProfileStudentPageState extends State<ProfileStudentPage> {
 
       if (user.isNotEmpty) {
         setState(() {
-          _name = user[0]['student_name'] as String? ?? 'N/A';
-          _email = user[0]['email'] as String? ?? 'N/A';
-          _nis = user[0]['nis'] as String? ?? 'N/A';
+          _name = user[0]['student_name'] as String? ?? 'Tidak Diketahui';
+          _email = user[0]['email'] as String? ?? 'Tidak Diketahui';
+          _nis = user[0]['nis'] as String? ?? 'Tidak Diketahui';
         });
       } else {
-        _showError('User not found!');
+        _showError('Pengguna tidak ditemukan!');
       }
     } catch (e) {
-      _showError('Error loading user data: $e');
+      _showError('Kesalahan saat memuat data pengguna: $e');
     }
   }
 
@@ -55,7 +55,7 @@ class _ProfileStudentPageState extends State<ProfileStudentPage> {
     final confirmPassword = _confirmPasswordController.text.trim();
 
     if (newPassword != confirmPassword) {
-      _showError('Passwords do not match!');
+      _showError('Kata sandi baru tidak cocok!');
       return;
     }
 
@@ -75,17 +75,17 @@ class _ProfileStudentPageState extends State<ProfileStudentPage> {
           where: 'email = ? AND password = ?',
           whereArgs: [widget.email, currentPassword],
         );
-        _showSuccess('Password changed successfully!');
+        _showSuccess('Kata sandi berhasil diubah!');
 
         // Kosongkan text field setelah password berhasil diubah
         _currentPasswordController.clear();
         _newPasswordController.clear();
         _confirmPasswordController.clear();
       } else {
-        _showError('Current password is incorrect!');
+        _showError('Kata sandi saat ini salah!');
       }
     } catch (e) {
-      _showError('Error changing password: $e');
+      _showError('Kesalahan saat mengubah kata sandi: $e');
     }
   }
 
@@ -104,100 +104,110 @@ class _ProfileStudentPageState extends State<ProfileStudentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Or any color you prefer
-      body: Column(
-        children: [
-          SizedBox(height: 20), // Adjust this height if you need space at the top
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildCommonCard(_buildProfileInfo()),
-                  SizedBox(height: 20),
-                  _buildCommonCard(_buildPasswordChangeSection()),
-                ],
+      backgroundColor: Colors.white, // Atur warna latar belakang sesuai keinginan
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    _buildProfileCard(),
+                    SizedBox(height: 20),
+                    _buildPasswordChangeCard(),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-
-  Widget _buildProfileInfo() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Name: $_name', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        SizedBox(height: 8),
-        Text('Email: $_email', style: TextStyle(fontSize: 16)),
-        SizedBox(height: 8),
-        Text('NIS: $_nis', style: TextStyle(fontSize: 16)),
-      ],
+  Widget _buildProfileCard() {
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.9,
+      child: Card(
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Nama: $_name', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              SizedBox(height: 8),
+              Text('Email: $_email', style: TextStyle(fontSize: 16)),
+              SizedBox(height: 8),
+              Text('NIS: $_nis', style: TextStyle(fontSize: 16)),
+            ],
+          ),
+        ),
+      ),
     );
+
   }
 
-  Widget _buildPasswordChangeSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Change Password', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        SizedBox(height: 16),
-        TextField(
-          controller: _currentPasswordController,
-          decoration: InputDecoration(
-            labelText: 'Current Password',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.lock),
-          ),
-          obscureText: true,
-        ),
-        SizedBox(height: 16),
-        TextField(
-          controller: _newPasswordController,
-          decoration: InputDecoration(
-            labelText: 'New Password',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.lock),
-          ),
-          obscureText: true,
-        ),
-        SizedBox(height: 16),
-        TextField(
-          controller: _confirmPasswordController,
-          decoration: InputDecoration(
-            labelText: 'Confirm New Password',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.lock),
-          ),
-          obscureText: true,
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: _changePassword,
-          child: Text('Change Password'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blueAccent,
-            padding: EdgeInsets.symmetric(vertical: 14),
-            textStyle: TextStyle(fontSize: 16),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCommonCard(Widget childContent) {
+  Widget _buildPasswordChangeCard() {
     return Card(
       elevation: 5,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
+        borderRadius: BorderRadius.circular(12.0),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: childContent,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Ubah Kata Sandi', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            SizedBox(height: 16),
+            TextField(
+              controller: _currentPasswordController,
+              decoration: InputDecoration(
+                labelText: 'Kata Sandi Saat Ini',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.lock),
+              ),
+              obscureText: true,
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: _newPasswordController,
+              decoration: InputDecoration(
+                labelText: 'Kata Sandi Baru',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.lock),
+              ),
+              obscureText: true,
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: _confirmPasswordController,
+              decoration: InputDecoration(
+                labelText: 'Konfirmasi Kata Sandi Baru',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.lock),
+              ),
+              obscureText: true,
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _changePassword,
+              child: Text('Ubah Kata Sandi'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 18),
+                textStyle: TextStyle(fontSize: 16),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../database_helper.dart';
-import 'PrintRecieptPage.dart';
+import 'PrintReceiptPage.dart';
 
 class PaymentHistoryPage extends StatelessWidget {
   final String nis;
@@ -40,43 +40,59 @@ class PaymentHistoryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Payment History'),
+        title: Text('Riwayat Pembayaran'),
         backgroundColor: Colors.blueAccent,
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _getPaymentHistory(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No payment history found.'));
-          } else {
-            final payments = snapshot.data!;
-            return ListView.builder(
-              itemCount: payments.length,
-              itemBuilder: (context, index) {
-                final payment = payments[index];
-                return ListTile(
-                  title: Text('Amount: ${_formatCurrency(payment['payment_amount'])}'),
-                  subtitle: Text(
-                    'Date: ${_formatDate(payment['payment_date'])}' +
-                        (_isCurrentMonth(payment['payment_date']) ? ' (Current Month)' : ''),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PrintReceiptPage(paymentData: payment),
+      body: SingleChildScrollView(
+        child: FutureBuilder<List<Map<String, dynamic>>>(
+          future: _getPaymentHistory(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(child: Text('Riwayat pembayaran tidak ditemukan.'));
+            } else {
+              final payments = snapshot.data!;
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: payments.map((payment) {
+                    return Card(
+                      elevation: 5,
+                      margin: EdgeInsets.symmetric(vertical: 8.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      child: ListTile(
+                        contentPadding: EdgeInsets.all(16.0),
+                        title: Text(
+                          'Jumlah: ${_formatCurrency(payment['payment_amount'])}',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          'Tanggal: ${_formatDate(payment['payment_date'])}' +
+                              (_isCurrentMonth(payment['payment_date']) ? ' (Bulan Ini)' : ''),
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PrintReceiptPage(paymentData: payment),
+                            ),
+                          );
+                        },
                       ),
                     );
-                  },
-                );
-              },
-            );
-          }
-        },
+                  }).toList(),
+                ),
+              );
+            }
+          },
+        ),
       ),
     );
   }

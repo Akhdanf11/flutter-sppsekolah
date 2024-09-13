@@ -24,7 +24,7 @@ class _StudentMainPageState extends State<StudentMainPage> {
 
   List<Widget> _buildPages() {
     return [
-      // Home Page with buttons for "Payment History" and "Pay SPP"
+      // Halaman Utama dengan tombol untuk "Riwayat Pembayaran" dan "Bayar SPP"
       Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -38,10 +38,10 @@ class _StudentMainPageState extends State<StudentMainPage> {
               SizedBox(height: 20),
               Text('NIS: ${widget.nis}', style: TextStyle(fontSize: 18)),
               SizedBox(height: 20),
-              // DashboardCard for Payment History
+              // DashboardCard untuk Riwayat Pembayaran
               DashboardCard(
                 icon: Icons.history,
-                title: 'Payment History',
+                title: 'Riwayat Pembayaran',
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -52,10 +52,10 @@ class _StudentMainPageState extends State<StudentMainPage> {
                 },
               ),
               SizedBox(height: 10),
-              // DashboardCard for Pay SPP
+              // DashboardCard untuk Bayar SPP
               DashboardCard(
                 icon: Icons.monetization_on,
-                title: 'Pay SPP',
+                title: 'Bayar SPP',
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -72,7 +72,7 @@ class _StudentMainPageState extends State<StudentMainPage> {
           ),
         ),
       ),
-      // Profile Page
+      // Halaman Profil
       ProfileStudentPage(email: widget.email),
     ];
   }
@@ -90,10 +90,10 @@ class _StudentMainPageState extends State<StudentMainPage> {
 
   void _onItemTapped(int index) {
     if (index == 2) {
-      // Trigger the logout dialog when "Logout" is selected
+      // Memicu dialog logout ketika "Logout" dipilih
       _showLogoutDialog();
     } else {
-      // Update the selected index for Home and Profile
+      // Memperbarui indeks yang dipilih untuk Halaman Utama dan Profil
       setState(() {
         _selectedIndex = index;
       });
@@ -105,20 +105,20 @@ class _StudentMainPageState extends State<StudentMainPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Logout'),
-          content: Text('Are you sure you want to logout?'),
+          title: Text('Keluar'),
+          content: Text('Apakah Anda yakin ingin keluar?'),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop(); // Tutup dialog
               },
-              child: Text('Cancel'),
+              child: Text('Batal'),
             ),
             TextButton(
               onPressed: () {
                 _logout();
               },
-              child: Text('Logout'),
+              child: Text('Keluar'),
             ),
           ],
         );
@@ -130,7 +130,7 @@ class _StudentMainPageState extends State<StudentMainPage> {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => LoginPage()),
-          (route) => false, // Remove all previous routes
+          (route) => false, // Hapus semua route sebelumnya
     );
   }
 
@@ -138,25 +138,25 @@ class _StudentMainPageState extends State<StudentMainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Student Dashboard'),
+        title: Text('Dashboard Siswa'),
         backgroundColor: Colors.blueAccent,
       ),
       body: _buildPages()[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: _onItemTapped, // Handle BottomNavigationBar item taps
+        onTap: _onItemTapped, // Tangani ketukan item BottomNavigationBar
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Home',
+            label: 'Beranda',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: 'Profile',
+            label: 'Profil',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.logout),
-            label: 'Logout',
+            label: 'Keluar',
           ),
         ],
         selectedItemColor: Colors.blueAccent,

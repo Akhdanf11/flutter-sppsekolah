@@ -21,28 +21,55 @@ class DatabaseHelper {
   Future<void> _createDB(Database db, int version) async {
     print("Creating tables");
     await db.execute(''' 
-      CREATE TABLE IF NOT EXISTS students (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        email TEXT NOT NULL UNIQUE, 
-        password TEXT NOT NULL, 
-        nis TEXT NOT NULL UNIQUE, 
-        student_name TEXT NOT NULL, 
-        va_number TEXT, 
-        spp_amount REAL, 
-        spp_paid REAL, 
-        amount_due REAL
-      )
-    ''');
+    CREATE TABLE IF NOT EXISTS students (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, 
+      email TEXT NOT NULL UNIQUE, 
+      password TEXT NOT NULL, 
+      nis TEXT NOT NULL UNIQUE, 
+      student_name TEXT NOT NULL, 
+      va_number TEXT, 
+      spp_amount REAL, 
+      spp_paid REAL, 
+      amount_due REAL,
+      is_active INTEGER DEFAULT 1  -- Add this line for active status
+    )
+  ''');
     await db.execute(''' 
-      CREATE TABLE IF NOT EXISTS staff (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        email TEXT NOT NULL UNIQUE, 
-        password TEXT NOT NULL, 
-        nip TEXT NOT NULL UNIQUE, 
-        name TEXT NOT NULL
-      )
-    ''');
+    CREATE TABLE IF NOT EXISTS staff (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, 
+      email TEXT NOT NULL UNIQUE, 
+      password TEXT NOT NULL, 
+      nip TEXT NOT NULL UNIQUE, 
+      name TEXT NOT NULL
+    )
+  ''');
     await db.execute(''' 
+    CREATE TABLE IF NOT EXISTS payments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, 
+      nis TEXT, 
+      payment_month INTEGER, 
+      payment_year INTEGER, 
+      payment_amount REAL, 
+      payment_date TEXT, 
+      va_number TEXT, 
+      FOREIGN KEY(nis) REFERENCES students(nis)
+    )
+  ''');
+    await db.execute(''' 
+    CREATE TABLE IF NOT EXISTS standard_amount (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, 
+      amount REAL NOT NULL
+    )
+  ''');
+    print("Tables created");
+  }
+
+  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    print("Upgrading database from version $oldVersion to $newVersion");
+
+    if (oldVersion < 2) {
+      // Handle schema changes for version 2
+      await db.execute(''' 
       CREATE TABLE IF NOT EXISTS payments (
         id INTEGER PRIMARY KEY AUTOINCREMENT, 
         nis TEXT, 
@@ -54,39 +81,20 @@ class DatabaseHelper {
         FOREIGN KEY(nis) REFERENCES students(nis)
       )
     ''');
-    await db.execute(''' 
-      CREATE TABLE IF NOT EXISTS standard_amount (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        amount REAL NOT NULL
-      )
-    ''');
-    print("Tables created");
-  }
-
-  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
-    print("Upgrading database from version $oldVersion to $newVersion");
-
-    if (oldVersion < 2) {
-      // Handle schema changes for version 2
-      await db.execute(''' 
-        CREATE TABLE IF NOT EXISTS payments (
-          id INTEGER PRIMARY KEY AUTOINCREMENT, 
-          nis TEXT, 
-          payment_month INTEGER, 
-          payment_year INTEGER, 
-          payment_amount REAL, 
-          payment_date TEXT, 
-          va_number TEXT, 
-          FOREIGN KEY(nis) REFERENCES students(nis)
-        )
-      ''');
     }
 
     if (oldVersion < 3) {
       // Handle schema changes for version 3
       await db.execute(''' 
-        ALTER TABLE payments ADD COLUMN va_number TEXT 
-      ''');
+      ALTER TABLE payments ADD COLUMN va_number TEXT 
+    ''');
+    }
+
+    if (oldVersion < 4) {
+      // Add is_active column to students table
+      await db.execute(''' 
+      ALTER TABLE students ADD COLUMN is_active INTEGER DEFAULT 1
+    ''');
     }
   }
 
@@ -135,17 +143,21 @@ class DatabaseHelper {
 
   Future<Map<String, dynamic>?> getStudentData(String nis) async {
     final db = await instance.database;
-    final result = await db.query(
-      'students',
-      where: 'nis = ?',
-      whereArgs: [nis],
-    );
+    final result = await db.rawQuery('''
+    SELECT s.nis, s.student_name, s.amount_due, COALESCE(SUM(p.payment_amount), 0) AS total_paid, 
+           MAX(p.payment_date) AS payment_date, s.va_number, s.spp_amount, s.spp_paid, p.payment_month
+    FROM students s
+    LEFT JOIN payments p ON s.nis = p.nis
+    WHERE s.nis = ?
+    GROUP BY s.nis
+  ''', [nis]);
 
     if (result.isNotEmpty) {
       return result.first;
     }
     return null;
   }
+
 
 
   Future<void> setStudentSPPAmount(int studentId, double amount) async {
@@ -287,14 +299,14 @@ class DatabaseHelper {
     try {
       final result = await db.query(
         'students',
-        where: 'email = ? AND password = ?',
+        where: 'email = ? AND password = ? AND is_active = 1', // Ensure student is active
         whereArgs: [email, password],
       );
 
       if (result.isNotEmpty) {
-        return result.first;
+        return result.first; // Return the first matching student record
       } else {
-        print('Student not found or password incorrect');
+        print('Student not found, incorrect password, or account is not active');
         return null;
       }
     } catch (e) {
@@ -302,6 +314,7 @@ class DatabaseHelper {
       return null;
     }
   }
+
 
   Future<Map<String, dynamic>?> loginStaff(String email, String password) async {
     final db = await database;
