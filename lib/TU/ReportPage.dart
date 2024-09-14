@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'dart:io';
+import 'package:printing/printing.dart';
 import '../database_helper.dart';
 
 class ReportPage extends StatefulWidget {
@@ -34,6 +40,8 @@ class _ReportPageState extends State<ReportPage> {
       updatedStudent['payment_date'] = studentData?['payment_date'] ?? 'N/A';
       updatedStudent['va_number'] = studentData?['va_number'] ?? 'N/A';
       updatedStudent['payment_month'] = studentData?['payment_month'] ?? 'N/A';
+      updatedStudent['status'] = studentData?['status'] ?? 0;
+
       updatedStudents.add(updatedStudent);
 
       if (studentData?['spp_paid'] == 1) {
@@ -52,6 +60,63 @@ class _ReportPageState extends State<ReportPage> {
   String formatCurrency(double amount) {
     final format = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
     return format.format(amount);
+  }
+
+  Future<void> _generateAndSharePdf() async {
+    final pdf = pw.Document();
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Center(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('Laporan SPP', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 20),
+                pw.Text('Jumlah Siswa: $_totalStudents', style: pw.TextStyle(fontSize: 16)),
+                pw.Text('Siswa yang Telah Bayar: $_paidStudents', style: pw.TextStyle(fontSize: 16)),
+                pw.Text('Siswa yang Belum Bayar: $_unpaidStudents', style: pw.TextStyle(fontSize: 16)),
+                pw.Text('Total Pendapatan: ${formatCurrency(_totalIncome)}', style: pw.TextStyle(fontSize: 16)),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    final directory = await getTemporaryDirectory();
+    final file = File('${directory.path}/report.pdf');
+    await file.writeAsBytes(await pdf.save());
+
+    Share.shareFiles([file.path], text: 'Laporan SPP');
+  }
+
+  Future<void> _printPdf() async {
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async {
+        final pdf = pw.Document();
+        pdf.addPage(
+          pw.Page(
+            build: (pw.Context context) {
+              return pw.Center(
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('Laporan SPP', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                    pw.SizedBox(height: 20),
+                    pw.Text('Jumlah Siswa: $_totalStudents', style: pw.TextStyle(fontSize: 16)),
+                    pw.Text('Siswa yang Telah Bayar: $_paidStudents', style: pw.TextStyle(fontSize: 16)),
+                    pw.Text('Siswa yang Belum Bayar: $_unpaidStudents', style: pw.TextStyle(fontSize: 16)),
+                    pw.Text('Total Pendapatan: ${formatCurrency(_totalIncome)}', style: pw.TextStyle(fontSize: 16)),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+        return pdf.save();
+      },
+    );
   }
 
   @override
@@ -105,17 +170,25 @@ class _ReportPageState extends State<ReportPage> {
               ),
             ),
             SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                // Action to perform when the button is pressed
-              },
-              child: Text('Unduh Laporan'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                textStyle: TextStyle(fontSize: 16),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded( // Fix overflow issue by making buttons flexible
+                  child: ElevatedButton.icon(
+                    onPressed: _printPdf,
+                    icon: Icon(Icons.print),
+                    label: Text('Cetak Laporan'),
+                  ),
+                ),
+                SizedBox(width: 8), // Add spacing between buttons
+                Expanded( // Fix overflow issue by making buttons flexible
+                  child: ElevatedButton.icon(
+                    onPressed: _generateAndSharePdf,
+                    icon: Icon(Icons.share),
+                    label: Text('Bagikan Laporan'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
