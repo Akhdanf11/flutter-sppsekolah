@@ -12,16 +12,28 @@ class ManageStudentsPage extends StatefulWidget {
 
 class _ManageStudentsPageState extends State<ManageStudentsPage> {
   List<Map<String, dynamic>> _students = [];
+  String? _selectedClass = 'Semua Kelas';  // Default to 'Semua Kelas'
+  List<String> _classes = [
+    'Semua Kelas',
+    'VII-A', 'VII-B', 'VII-C',
+    'VIII-A', 'VIII-B', 'VIII-C',
+    'IX-A', 'IX-B', 'IX-C',
+  ]; // List of classes
 
   @override
   void initState() {
     super.initState();
-    _loadStudents();
+    _loadStudents(); // Load all students initially
   }
 
-  Future<void> _loadStudents() async {
+  Future<void> _loadStudents({String? selectedClass}) async {
     final db = await DatabaseHelper.instance.database;
-    final List<Map<String, dynamic>> students = await db.query('students');
+
+    // If "Semua Kelas" is selected, load all students
+    final List<Map<String, dynamic>> students = selectedClass != null && selectedClass != 'Semua Kelas'
+        ? await db.query('students', where: 'kelas = ?', whereArgs: [selectedClass])
+        : await db.query('students'); // Load all students if "Semua Kelas" is selected
+
     setState(() {
       _students = students;
     });
@@ -35,7 +47,7 @@ class _ManageStudentsPageState extends State<ManageStudentsPage> {
       where: 'id = ?',
       whereArgs: [studentId],
     );
-    _loadStudents();
+    _loadStudents(selectedClass: _selectedClass); // Reload students based on the selected class
   }
 
   @override
@@ -44,29 +56,65 @@ class _ManageStudentsPageState extends State<ManageStudentsPage> {
       appBar: AppBar(
         title: Text('Kelola Siswa'),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: _students.map((student) {
-            return Card(
-              margin: EdgeInsets.all(8.0),
-              elevation: 4,
-              child: ListTile(
-                contentPadding: EdgeInsets.all(16.0),
-                title: Text(
-                  student['student_name'],
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text('NIS: ${student['nis']}'),
-                trailing: Switch(
-                  value: student['is_active'] == 1, // Active (1) or Inactive (0)
-                  onChanged: (value) {
-                    _toggleStudentStatus(student['id'], value);
-                  },
-                ),
-              ),
-            );
-          }).toList(),
+      body: Column(
+        children: [
+          _buildClassDropdown(), // Add the dropdown for class selection
+          Expanded(
+            child: _students.isEmpty
+                ? Center(child: Text('Tidak ada data siswa.'))
+                : ListView.builder(
+              itemCount: _students.length,
+              itemBuilder: (context, index) {
+                final student = _students[index];
+                return Card(
+                  margin: EdgeInsets.all(8.0),
+                  elevation: 4,
+                  child: ListTile(
+                    contentPadding: EdgeInsets.all(16.0),
+                    title: Text(
+                      student['student_name'],
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text('NIS: ${student['nis']}\nKelas: ${student['kelas']}'),
+                    trailing: Switch(
+                      value: student['is_active'] == 1, // Active (1) or Inactive (0)
+                      onChanged: (value) {
+                        _toggleStudentStatus(student['id'], value);
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Dropdown for selecting a class
+  Widget _buildClassDropdown() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+          labelText: 'Pilih Kelas',
+          border: OutlineInputBorder(),
         ),
+        value: _selectedClass,
+        items: _classes.map((String className) {
+          return DropdownMenuItem<String>(
+            value: className,
+            child: Text(className),
+          );
+        }).toList(),
+        onChanged: (newClass) {
+          setState(() {
+            _selectedClass = newClass;
+          });
+          _loadStudents(selectedClass: _selectedClass == 'Semua Kelas' ? null : _selectedClass); // Load students based on selected class
+        },
+        isExpanded: true,
       ),
     );
   }

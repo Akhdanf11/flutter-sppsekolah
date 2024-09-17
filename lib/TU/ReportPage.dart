@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:printing/printing.dart';
 import '../database_helper.dart';
+import 'AllStudentReportPage.dart';
 
 class ReportPage extends StatefulWidget {
   @override
@@ -18,6 +19,7 @@ class _ReportPageState extends State<ReportPage> {
   int _paidStudents = 0;
   int _unpaidStudents = 0;
   double _totalIncome = 0.0;
+  int _totalClasses = 0; // Variable for total classes
 
   @override
   void initState() {
@@ -53,7 +55,7 @@ class _ReportPageState extends State<ReportPage> {
       _totalStudents = students.length;
       _paidStudents = updatedStudents.where((student) => student['spp_paid'] == 1).length;
       _unpaidStudents = updatedStudents.where((student) => student['spp_paid'] != 1).length;
-      _totalIncome = totalIncome;
+      _totalIncome = totalIncome;// Update total classes
     });
   }
 
@@ -123,7 +125,7 @@ class _ReportPageState extends State<ReportPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Laporan SPP'),
+        title: Text('Data Laporan'),
         backgroundColor: Colors.blueAccent,
       ),
       body: Padding(
@@ -131,11 +133,8 @@ class _ReportPageState extends State<ReportPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Informasi SPP',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
             SizedBox(height: 16),
+            // Card for SPP information and buttons
             Card(
               elevation: 4,
               shape: RoundedRectangleBorder(
@@ -146,6 +145,11 @@ class _ReportPageState extends State<ReportPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      'Data SPP',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 8),
                     Text(
                       'Jumlah Siswa: $_totalStudents',
                       style: TextStyle(fontSize: 18),
@@ -165,30 +169,63 @@ class _ReportPageState extends State<ReportPage> {
                       'Total Pendapatan Siswa yang Membayar: ${formatCurrency(_totalIncome)}',
                       style: TextStyle(fontSize: 18),
                     ),
+                    SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _printPdf,
+                            icon: Icon(Icons.print),
+                            label: Text('Cetak Laporan'),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _generateAndSharePdf,
+                            icon: Icon(Icons.share),
+                            label: Text('Bagikan Laporan'),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
             ),
             SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded( // Fix overflow issue by making buttons flexible
-                  child: ElevatedButton.icon(
-                    onPressed: _printPdf,
-                    icon: Icon(Icons.print),
-                    label: Text('Cetak Laporan'),
+            // Card for class information
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AllStudentsReportPage()),
+                  );
+                },
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Lihat Laporan Semua Siswa',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Klik untuk melihat laporan lengkap semua siswa.',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(width: 8), // Add spacing between buttons
-                Expanded( // Fix overflow issue by making buttons flexible
-                  child: ElevatedButton.icon(
-                    onPressed: _generateAndSharePdf,
-                    icon: Icon(Icons.share),
-                    label: Text('Bagikan Laporan'),
-                  ),
-                ),
-              ],
+              ),
             ),
           ],
         ),

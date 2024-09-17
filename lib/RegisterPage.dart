@@ -10,55 +10,77 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _nisOrNipController = TextEditingController();
+  final TextEditingController _nisController = TextEditingController();
+  final TextEditingController _nisnController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _nipController = TextEditingController(); // For Staff NIP
 
-  String _selectedRole = 'Siswa'; // Peran default
-  bool _isPasswordVisible = false; // Toggle visibilitas kata sandi
+  String _selectedRole = 'Siswa'; // Default role
+  String _selectedGender = 'Laki-Laki'; // Default gender
+  String _selectedClass = 'VII-A'; // Default class
+  bool _isPasswordVisible = false; // Password visibility toggle
 
   Future<void> _register() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final role = _selectedRole;
-    final nisOrNip = _nisOrNipController.text.trim();
+    final nis = _nisController.text.trim();
+    final nisn = _nisnController.text.trim();
     final name = _nameController.text.trim();
+    final nip = _nipController.text.trim(); // Corrected NIP for staff
+    final gender = _selectedGender;
+    final classSection = _selectedClass;
 
-    if (email.isEmpty || password.isEmpty || nisOrNip.isEmpty || name.isEmpty) {
-      _showError('Silakan lengkapi semua kolom!');
+    if (email.isEmpty || password.isEmpty || name.isEmpty) {
+      _showError('Silakan lengkapi semua kolom yang diperlukan!');
       return;
     }
 
-    // Validasi NIS/NIP untuk memastikan hanya berisi angka
-    if (!RegExp(r'^[0-9]+$').hasMatch(nisOrNip)) {
-      _showError('NIS/NIP harus berisi angka saja!');
-      return;
+    if (role == 'Siswa') {
+      if (nis.isEmpty || nisn.isEmpty) {
+        _showError('NIS dan NISN harus diisi untuk siswa!');
+        return;
+      }
+      if (!RegExp(r'^[0-9]+(\.[0-9]+)?$').hasMatch(nis) || !RegExp(r'^[0-9]+$').hasMatch(nisn)) {
+        _showError('NIS harus berisi angka dengan format yang benar, dan NISN harus berisi angka saja!');
+        return;
+      }
+    }
+
+    if (role == 'Tata Usaha') {
+      if (nip.isEmpty) {
+        _showError('NIP harus diisi untuk Tata Usaha!');
+        return;
+      }
     }
 
     try {
-      bool emailExists = await DatabaseHelper.instance.isEmailTaken(email); // Pastikan menunggu
-      if (emailExists) { // Tangani kasus di mana emailExists bisa null
+      bool emailExists = await DatabaseHelper.instance.isEmailTaken(email);
+      if (emailExists) {
         _showError('Email sudah terdaftar!');
         return;
       }
 
+      // Registration process
       if (role == 'Siswa') {
         await DatabaseHelper.instance.registerStudent(
           email,
           password,
-          nisOrNip,
+          nis,
+          nisn,
           name,
+          gender,
+          classSection,
         );
       } else if (role == 'Tata Usaha') {
         await DatabaseHelper.instance.registerStaff(
           email,
           password,
-          nisOrNip,
-          name,
+          name,  // Ensure this is the correct 'name' for Tata Usaha
+          nip,   // Corrected to store NIP instead of phoneNumber
         );
-      } else {
-        _showError('Peran tidak valid! Gunakan Siswa atau Tata Usaha.');
-        return;
       }
+
       Navigator.pushReplacementNamed(context, '/login');
     } catch (e) {
       _showError('Terjadi kesalahan saat registrasi: $e');
@@ -66,10 +88,8 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _showError(String message) {
-    if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
-    }
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -105,13 +125,12 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: _passwordController,
                 obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
-                  labelText: 'Kata Sandi',
+                  labelText: 'Password',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                      color: Colors.grey,
                     ),
                     onPressed: () {
                       setState(() {
@@ -125,14 +144,8 @@ class _RegisterPageState extends State<RegisterPage> {
               DropdownButtonFormField<String>(
                 value: _selectedRole,
                 items: [
-                  DropdownMenuItem(
-                    child: Text('Siswa'),
-                    value: 'Siswa',
-                  ),
-                  DropdownMenuItem(
-                    child: Text('Tata Usaha'),
-                    value: 'Tata Usaha',
-                  ),
+                  DropdownMenuItem(child: Text('Siswa'), value: 'Siswa'),
+                  DropdownMenuItem(child: Text('Tata Usaha'), value: 'Tata Usaha'),
                 ],
                 onChanged: (value) {
                   setState(() {
@@ -145,43 +158,115 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
               SizedBox(height: 16),
-              TextField(
-                controller: _nisOrNipController,
-                decoration: InputDecoration(
-                  labelText: 'NIS/NIP',
-                  border: OutlineInputBorder(),
+
+              if (_selectedRole == 'Siswa') ...[
+                TextField(
+                  controller: _nisController,
+                  decoration: InputDecoration(
+                    labelText: 'NIS',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
+                  ],
                 ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-              ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: _nisnController,
+                  decoration: InputDecoration(
+                    labelText: 'NISN',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Nama',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: _selectedGender,
+                  items: [
+                    DropdownMenuItem(child: Text('Laki-Laki'), value: 'Laki-Laki'),
+                    DropdownMenuItem(child: Text('Perempuan'), value: 'Perempuan'),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedGender = value!;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Jenis Kelamin',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: _selectedClass,
+                  items: [
+                    DropdownMenuItem(child: Text('VII-A'), value: 'VII-A'),
+                    DropdownMenuItem(child: Text('VII-B'), value: 'VII-B'),
+                    DropdownMenuItem(child: Text('VII-C'), value: 'VII-C'),
+                    DropdownMenuItem(child: Text('VIII-A'), value: 'VIII-A'),
+                    DropdownMenuItem(child: Text('VIII-B'), value: 'VIII-B'),
+                    DropdownMenuItem(child: Text('VIII-C'), value: 'VIII-C'),
+                    DropdownMenuItem(child: Text('IX-A'), value: 'IX-A'),
+                    DropdownMenuItem(child: Text('IX-B'), value: 'IX-B'),
+                    DropdownMenuItem(child: Text('IX-C'), value: 'IX-C'),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedClass = value!;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Kelas',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ] else if (_selectedRole == 'Tata Usaha') ...[
+                TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Nama',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: _nipController, // NIP input for staff
+                  decoration: InputDecoration(
+                    labelText: 'NIP',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                ),
+              ],
               SizedBox(height: 16),
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Nama',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _register,
-                child: Text('Registrasi'),
+                child: Text('Daftar'),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
-                  backgroundColor: Colors.blueAccent,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  textStyle: TextStyle(fontSize: 18),
-                  minimumSize: Size(double.infinity, 50),
+                  backgroundColor: Colors.blueAccent, // Warna teks tombol
+                  padding: EdgeInsets.symmetric(vertical: 16), // Tinggi tombol
+                  textStyle: TextStyle(fontSize: 18), // Ukuran teks tombol
+                  minimumSize: Size(double.infinity, 50), // Lebar tombol
                 ),
               ),
               SizedBox(height: 20),
               TextButton(
                 onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/login');
+                  Navigator.pushNamed(context, '/login');
                 },
-                child: Text("Sudah punya akun? Masuk"),
+                child: Text('Sudah punya akun? Masuk'),
               ),
             ],
           ),
