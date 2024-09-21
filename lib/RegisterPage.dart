@@ -268,7 +268,10 @@ class _RegisterPageState extends State<RegisterPage> {
                 onPressed: () {
                   Navigator.pushNamed(context, '/login');
                 },
-                child: Text('Sudah punya akun? Masuk'),
+                child: Text(
+                  'Sudah punya akun? Masuk',
+                  style: TextStyle(color: Colors.blueAccent),
+                ),
               ),
             ],
           ),

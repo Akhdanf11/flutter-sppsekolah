@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../database_helper.dart';
 import '../siswa/StudentPaymentPage.dart';
-import '../siswa/PrintReceiptPage.dart'; // Import the PrintReceiptPage
+import '../siswa/PrintReceiptPage.dart';
 
 class ManageSPPPage extends StatefulWidget {
   final String email;
@@ -32,7 +32,6 @@ class _ManageSPPPageState extends State<ManageSPPPage> {
   Future<void> _fetchStudents({String? selectedClass}) async {
     final db = DatabaseHelper.instance;
 
-    // Query based on selected class if any, or all classes if 'Semua Kelas' is selected
     List<Map<String, dynamic>> students = (selectedClass != null && selectedClass != 'Semua Kelas')
         ? await db.getStudentsByClass(selectedClass)
         : await db.getAllStudents();
@@ -96,11 +95,96 @@ class _ManageSPPPageState extends State<ManageSPPPage> {
     );
   }
 
+  void _showUpdateSPPDialog(Map<String, dynamic> student) {
+    final TextEditingController _sppController = TextEditingController(text: student['amount_due'].toString());
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Update Nominal SPP'),
+          content: TextField(
+            controller: _sppController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: 'Nominal SPP'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () async {
+                double? newAmount = double.tryParse(_sppController.text);
+                if (newAmount != null) {
+                  await DatabaseHelper.instance.updateSppAmount(student['nis'], newAmount);
+                  Navigator.of(context).pop();
+                  _fetchStudents(selectedClass: _selectedClass);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Silakan masukkan nominal yang valid.')),
+                  );
+                }
+              },
+              child: Text('Simpan'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showGlobalUpdateDialog() {
+    final TextEditingController _sppController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Update Nominal SPP untuk Semua Siswa'),
+          content: TextField(
+            controller: _sppController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: 'Nominal SPP Baru'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () async {
+                double? newAmount = double.tryParse(_sppController.text);
+                if (newAmount != null) {
+                  await DatabaseHelper.instance.updateAllSppAmounts(newAmount);
+                  Navigator.of(context).pop();
+                  _fetchStudents(selectedClass: _selectedClass);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Nominal SPP berhasil diperbarui untuk semua siswa.')),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Silakan masukkan nominal yang valid.')),
+                  );
+                }
+              },
+              child: Text('Simpan'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   String _formatDate(String date) {
     try {
       return DateFormat('dd MMMM yyyy').format(DateTime.parse(date));
     } catch (e) {
-      return date; // Return original date if parsing fails
+      return date;
     }
   }
 
@@ -111,6 +195,12 @@ class _ManageSPPPageState extends State<ManageSPPPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text('Kelola SPP'),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.attach_money_rounded),
+              onPressed: _showGlobalUpdateDialog, // Show global update dialog
+            ),
+          ],
           bottom: TabBar(
             tabs: [
               Tab(text: 'Telah Bayar'),
@@ -120,18 +210,12 @@ class _ManageSPPPageState extends State<ManageSPPPage> {
         ),
         body: Column(
           children: [
-            _buildClassDropdown(), // Dropdown for class selection
+            _buildClassDropdown(),
             Expanded(
               child: TabBarView(
                 children: [
-                  // Tab siswa yang telah membayar
-                  _buildStudentList(
-                    filterPaid: true,
-                  ),
-                  // Tab siswa yang belum membayar
-                  _buildStudentList(
-                    filterPaid: false,
-                  ),
+                  _buildStudentList(filterPaid: true),
+                  _buildStudentList(filterPaid: false),
                 ],
               ),
             ),
@@ -141,13 +225,11 @@ class _ManageSPPPageState extends State<ManageSPPPage> {
     );
   }
 
-  // Helper function to format currency in Rupiah
   String formatCurrency(double amount) {
     final format = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
     return format.format(amount);
   }
 
-  // Dropdown for selecting a class
   Widget _buildClassDropdown() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -156,7 +238,7 @@ class _ManageSPPPageState extends State<ManageSPPPage> {
           labelText: 'Pilih Kelas',
           border: OutlineInputBorder(),
         ),
-        value: _selectedClass ?? 'Semua Kelas', // Default value set to 'Semua Kelas'
+        value: _selectedClass ?? 'Semua Kelas',
         items: _classes.map((String className) {
           return DropdownMenuItem<String>(
             value: className,
@@ -174,7 +256,6 @@ class _ManageSPPPageState extends State<ManageSPPPage> {
     );
   }
 
-  // Widget to display the list of students
   Widget _buildStudentList({required bool filterPaid}) {
     final filteredStudents = _students.where((student) => student['spp_paid'] == (filterPaid ? 1 : 0)).toList();
 
@@ -223,6 +304,12 @@ class _ManageSPPPageState extends State<ManageSPPPage> {
                       Text('Pembayaran Terakhir: ${student['payment_date'] ?? 'Belum Ada Pembayaran'}'),
                     ],
                 ],
+              ),
+              trailing: IconButton(
+                icon: Icon(Icons.edit),
+                onPressed: () {
+                  _showUpdateSPPDialog(student);
+                },
               ),
             ),
           ),

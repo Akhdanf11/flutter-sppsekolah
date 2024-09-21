@@ -465,16 +465,58 @@
       return null;
     }
 
-    Future<void> updateAllStudentsAmountDue(double newAmount) async {
+    // Add this method to update a student's SPP amount
+    Future<void> updateSppAmount(String nis, double newAmount) async {
       final db = await database;
-      await db.update(
-        'students',
-        {'amount_due': newAmount},
-        where: '1 = ?', // This updates all rows
-        whereArgs: [],
-      );
+
+      // Calculate new amount due
+      final result = await db.rawQuery('SELECT spp_paid FROM students WHERE nis = ?', [nis]);
+
+      if (result.isNotEmpty) {
+        // Cast the value to double
+        double sppPaid = (result.first['spp_paid'] as num?)?.toDouble() ?? 0.0;
+
+        double newAmountDue = newAmount - sppPaid;
+
+        // Update SPP amount and amount_due
+        await db.update(
+          'students',
+          {
+            'spp_amount': newAmount,
+            'amount_due': newAmountDue,
+          },
+          where: 'nis = ?',
+          whereArgs: [nis],
+        );
+      }
     }
 
+// This method can be used to fetch the current SPP amount
+    Future<Map<String, dynamic>?> getSppAmount(String nis) async {
+      final db = await instance.database;
+      final result = await db.rawQuery('''
+    SELECT spp_amount, spp_paid, amount_due 
+    FROM students 
+    WHERE nis = ?
+  ''', [nis]);
+
+      if (result.isNotEmpty) {
+        return result.first;
+      }
+      return null;
+    }
+
+    Future<void> updateAllSppAmounts(double newAmount) async {
+      final db = await database;
+
+      await db.transaction((txn) async {
+        await txn.update(
+          'students',
+          {'amount_due': newAmount},
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      });
+    }
 
     Future<List<Map<String, dynamic>>> getPaymentByMonth(String nis, int month, int year) async {
       final db = await instance.database;
