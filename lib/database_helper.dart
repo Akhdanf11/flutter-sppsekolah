@@ -83,7 +83,6 @@
       }
     }
 
-
     Future<List<Map<String, dynamic>>> getAllStudents() async {
         final db = await instance.database;
         final result = await db.rawQuery('''
@@ -102,20 +101,6 @@
         return result;
       }
 
-
-    Future<Map<String, dynamic>?> getStudentById(int id) async {
-      final db = await database;
-      final List<Map<String, dynamic>> result = await db.query(
-        'students',
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-      if (result.isNotEmpty) {
-        return result.first;
-      }
-      return null;
-    }
-
     Future<Map<String, dynamic>?> getStudentData(String nis) async {
       final db = await instance.database;
       final result = await db.rawQuery('''
@@ -131,30 +116,6 @@
         return result.first;
       }
       return null;
-    }
-
-    Future<void> setStudentSPPAmount(int studentId, double amount) async {
-      final db = await instance.database;
-      try {
-        await db.update(
-          'students',
-          {'spp_amount': amount},
-          where: 'id = ?',
-          whereArgs: [studentId],
-        );
-      } catch (e) {
-        print('Error setting SPP amount: $e');
-      }
-    }
-
-    Future<void> printAllStudents() async {
-      final students = await getAllStudents();
-      print("All students: $students");
-    }
-
-    Future<List<Map<String, dynamic>>> query(String table, {String? where, List<dynamic>? whereArgs}) async {
-      final db = await database;
-      return await db.query(table, where: where, whereArgs: whereArgs);
     }
 
     Future<void> registerStudent(
@@ -345,51 +306,6 @@
       }
     }
 
-    Future<void> updateStudentPaymentDetails(
-        String nis,
-        double amount,
-        String vaNumber,
-        int month,
-        int year,
-        ) async {
-      final db = await database;
-      final paymentDate = DateTime(year, month).toIso8601String();
-
-      // Check if a record already exists for this nis, month, and year
-      final existingPayments = await db.query(
-        'payments',
-        where: 'nis = ? AND payment_month = ? AND payment_year = ?',
-        whereArgs: [nis, month, year],
-      );
-
-      if (existingPayments.isNotEmpty) {
-        // Update existing record
-        await db.update(
-          'payments',
-          {
-            'payment_amount': amount,
-            'va_number': vaNumber,
-            'payment_date': paymentDate,
-          },
-          where: 'nis = ? AND payment_month = ? AND payment_year = ?',
-          whereArgs: [nis, month, year],
-        );
-      } else {
-        // Insert new record
-        await db.insert(
-          'payments',
-          {
-            'nis': nis,
-            'payment_month': month,
-            'payment_year': year,
-            'payment_amount': amount,
-            'payment_date': paymentDate,
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
-    }
-
     Future<void> updatePaymentDetailsByNis(
         String nis,
         double amount,
@@ -447,22 +363,6 @@
         where: 'nis = ?',
         whereArgs: [nis],
       );
-    }
-
-
-    Future<double?> getStandardAmount(String nis) async {
-      final db = await instance.database;
-      final result = await db.query(
-        'students',
-        columns: ['amount_due'],
-        where: 'nis = ?',
-        whereArgs: [nis],
-      );
-
-      if (result.isNotEmpty) {
-        return result.first['amount_due'] as double?;
-      }
-      return null;
     }
 
     // Add this method to update a student's SPP amount
@@ -532,7 +432,6 @@
         return [];
       }
     }
-
 
     Future<void> updatePaymentDetails(
         String nis,
