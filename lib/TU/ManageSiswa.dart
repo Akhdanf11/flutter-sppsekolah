@@ -12,10 +12,10 @@ class ManageStudentsPage extends StatefulWidget {
 
 class _ManageStudentsPageState extends State<ManageStudentsPage> {
   List<Map<String, dynamic>> _students = [];
-  String? _selectedClass = 'Semua Kelas';  // Default to 'Semua Kelas'
+  String? _selectedClass = 'Semua Kelas'; // Default to 'Semua Kelas'
   List<String> _classes = [
     'Semua Kelas',
-    'VII-A', 'VII-B', 'VII-C',
+    'VII-A', 'VII-B', 'VII-C', 'VII-D', 'VII-E',
     'VIII-A', 'VIII-B', 'VIII-C',
     'IX-A', 'IX-B', 'IX-C',
   ]; // List of classes
@@ -50,6 +50,73 @@ class _ManageStudentsPageState extends State<ManageStudentsPage> {
     _loadStudents(selectedClass: _selectedClass); // Reload students based on the selected class
   }
 
+  Future<void> _showUpdateStudentDialog(Map<String, dynamic> student) async {
+    String? selectedClass = student['kelas']; // Current class of the student
+    List<String> availableClasses = [
+      'VII-A', 'VII-B', 'VII-C', 'VII-D', 'VII-E',
+      'VIII-A', 'VIII-B', 'VIII-C',
+      'IX-A', 'IX-B', 'IX-C',
+    ]; // List of available classes
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Pembaruan Kelas Siswa'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Sekarang Kelas: $selectedClass'), // Display current class
+              SizedBox(height: 20),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: 'Pilih Kelas Siswa Yang Baru',
+                  border: OutlineInputBorder(),
+                ),
+                value: selectedClass,
+                items: availableClasses.map((String className) {
+                  return DropdownMenuItem<String>(
+                    value: className,
+                    child: Text(className),
+                  );
+                }).toList(),
+                onChanged: (newClass) {
+                  setState(() {
+                    selectedClass = newClass; // Update selected class
+                  });
+                },
+                isExpanded: true,
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Batal'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Kirim'),
+              onPressed: () async {
+                final db = await DatabaseHelper.instance.database;
+                await db.update(
+                  'students',
+                  {'kelas': selectedClass},
+                  where: 'id = ?',
+                  whereArgs: [student['id']],
+                );
+                Navigator.of(context).pop();
+                _loadStudents(selectedClass: _selectedClass); // Reload students
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,13 +142,17 @@ class _ManageStudentsPageState extends State<ManageStudentsPage> {
                       student['student_name'],
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    subtitle: Text('NIS: ${student['nis']}\nKelas: ${student['kelas']}'),
+                    subtitle: Text(
+                        'NIS: ${student['nis']}\nKelas: ${student['kelas']}'),
                     trailing: Switch(
                       value: student['is_active'] == 1, // Active (1) or Inactive (0)
                       onChanged: (value) {
                         _toggleStudentStatus(student['id'], value);
                       },
                     ),
+                    onTap: () {
+                      _showUpdateStudentDialog(student); // Show the update dialog when tapped
+                    },
                   ),
                 );
               },
@@ -112,7 +183,10 @@ class _ManageStudentsPageState extends State<ManageStudentsPage> {
           setState(() {
             _selectedClass = newClass;
           });
-          _loadStudents(selectedClass: _selectedClass == 'Semua Kelas' ? null : _selectedClass); // Load students based on selected class
+          _loadStudents(
+              selectedClass: _selectedClass == 'Semua Kelas'
+                  ? null
+                  : _selectedClass); // Load students based on selected class
         },
         isExpanded: true,
       ),

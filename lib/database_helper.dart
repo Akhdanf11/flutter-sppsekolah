@@ -83,42 +83,24 @@
       }
     }
 
-    Future<String> generateVaNumber(String nis) async {
-      final db = await database;
-      final year = DateTime.now().year.toString();
-
-      final result = await db.rawQuery(
-        'SELECT MAX(CAST(SUBSTR(va_number, 1, INSTR(va_number, "-") - 1) AS INTEGER)) AS max_increment '
-            'FROM students WHERE va_number LIKE "%-$nis-$year"',
-      );
-
-      int increment = 1;
-      if (result.isNotEmpty) {
-        final maxIncrement = result.first['max_increment'] as int?;
-        increment = (maxIncrement ?? 0) + 1;
-      }
-
-      final formattedIncrement = increment.toString().padLeft(3, '0');
-      return '$formattedIncrement-$nis-$year';
-    }
 
     Future<List<Map<String, dynamic>>> getAllStudents() async {
-      final db = await instance.database;
-      final result = await db.rawQuery('''
-    SELECT students.nis, 
-           students.student_name, 
-           students.spp_paid, 
-           payments.payment_amount AS total_paid, 
-           payments.payment_date, 
-           students.nisn, 
-           students.email, 
-           students.jenis_kelamin, 
-           students.kelas
-    FROM students
-    LEFT JOIN payments ON students.nis = payments.nis
-  ''');
-      return result;
-    }
+        final db = await instance.database;
+        final result = await db.rawQuery('''
+      SELECT students.nis, 
+             students.student_name, 
+             students.spp_paid, 
+             payments.payment_amount AS total_paid, 
+             payments.payment_date, 
+             students.nisn, 
+             students.email, 
+             students.jenis_kelamin, 
+             students.kelas
+      FROM students
+      LEFT JOIN payments ON students.nis = payments.nis
+    ''');
+        return result;
+      }
 
 
     Future<Map<String, dynamic>?> getStudentById(int id) async {
@@ -150,8 +132,6 @@
       }
       return null;
     }
-
-
 
     Future<void> setStudentSPPAmount(int studentId, double amount) async {
       final db = await instance.database;
@@ -192,8 +172,15 @@
         throw Exception('Database not initialized');
       }
 
-      // Generate VA number based on NIS
-      final vaNumber = await generateVaNumber(nis);
+      final year = DateTime.now().year.toString();
+
+      // Find the max increment for the current year
+      final result = await db.rawQuery(
+        'SELECT MAX(CAST(SUBSTR(va_number, 1, INSTR(va_number, "-") - 1) AS INTEGER)) as max_increment '
+            'FROM students WHERE va_number LIKE "%-$nisn-$year"',
+      );
+
+      final vaNumber = '$nisn-$year';
 
       // Initial SPP values
       final initialSppAmount = 100000.0;
@@ -205,20 +192,21 @@
           'email': email,
           'password': password,
           'nis': nis,
-          'nisn': nisn, // New column for NISN
+          'nisn': nisn,
           'student_name': studentName,
           'va_number': vaNumber,
           'spp_amount': initialSppAmount,
           'spp_paid': 0.0,
           'amount_due': initialAmountDue,
-          'jenis_kelamin': gender, // New column for gender
-          'kelas': classSection, // New column for class section
+          'jenis_kelamin': gender,
+          'kelas': classSection,
         },
-        conflictAlgorithm: ConflictAlgorithm.ignore, // Avoid overwriting existing data
+        conflictAlgorithm: ConflictAlgorithm.ignore,
       );
 
       print('Student registered: NIS: $nis, VA: $vaNumber, Amount Due: $initialAmountDue');
     }
+
 
     Future<void> registerStaff(String email, String password, String name, String nip) async {
       final db = await database;
@@ -289,9 +277,11 @@
     }
 
     Future<List<Map<String, dynamic>>> getStudentsByClass(String studentClass) async {
-      final db = await instance.database;
+      final db = await DatabaseHelper.instance.database;
 
-      // Query the students table by class
+      // Verify class value
+      print('Querying students with class: $studentClass');
+
       final List<Map<String, dynamic>> result = await db.query(
         'students',
         where: 'kelas = ?',
@@ -300,6 +290,7 @@
 
       return result;
     }
+
 
     Future<Map<String, dynamic>?> loginStudent(String email, String password) async {
       final db = await database;
@@ -474,15 +465,16 @@
       return null;
     }
 
-    Future<void> updateAmountDue(String nis, double amount) async {
-      final db = await instance.database;
+    Future<void> updateAllStudentsAmountDue(double newAmount) async {
+      final db = await database;
       await db.update(
         'students',
-        {'amount_due': amount},
-        where: 'nis = ?',
-        whereArgs: [nis],
+        {'amount_due': newAmount},
+        where: '1 = ?', // This updates all rows
+        whereArgs: [],
       );
     }
+
 
     Future<List<Map<String, dynamic>>> getPaymentByMonth(String nis, int month, int year) async {
       final db = await instance.database;
@@ -544,6 +536,88 @@
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
       }
+    }
+
+    Future<List<Map<String, dynamic>>> getStudentRecapByClass() async {
+      final db = await database;
+
+      // Query to get the student recap by class
+      final result = await db.rawQuery('''
+    SELECT 
+      kelas, 
+      SUM(CASE WHEN jenis_kelamin = 'Laki-Laki' THEN 1 ELSE 0 END) as jumlahL, 
+      SUM(CASE WHEN jenis_kelamin = 'Perempuan' THEN 1 ELSE 0 END) as jumlahP 
+    FROM students 
+    GROUP BY kelas
+  ''');
+
+      List<Map<String, dynamic>> modifiableResult = [];
+
+      // Process each class and calculate totals
+      for (var row in result) {
+        final jumlahL = row['jumlahL'] as int? ?? 0;
+        final jumlahP = row['jumlahP'] as int? ?? 0;
+        final totalKelas = jumlahL + jumlahP;
+
+        // Add the class-specific row
+        modifiableResult.add({
+          'kelas': row['kelas'],
+          'jumlahL': jumlahL,
+          'jumlahP': jumlahP,
+          'totalKelas': totalKelas,
+        });
+      }
+
+      // Calculate overall totals for each grade
+      final overallTotals = await db.rawQuery('''
+    SELECT 
+      SUBSTR(kelas, 1, INSTR(kelas, '-') - 1) AS gradeCategory, 
+      SUM(CASE WHEN jenis_kelamin = 'Laki-Laki' THEN 1 ELSE 0 END) as totalL, 
+      SUM(CASE WHEN jenis_kelamin = 'Perempuan' THEN 1 ELSE 0 END) as totalP, 
+      COUNT(*) as totalPerGrade
+    FROM students 
+    GROUP BY gradeCategory
+  ''');
+
+      // Add rows for overall totals by grade category (e.g., VII Total, VIII Total, IX Total)
+      for (var row in overallTotals) {
+        final totalL = row['totalL'] as int? ?? 0;
+        final totalP = row['totalP'] as int? ?? 0;
+        final totalPerGrade = totalL + totalP;
+
+        modifiableResult.add({
+          'kelas': '${row['gradeCategory']} Total', // e.g., "VII Total"
+          'jumlahL': totalL,
+          'jumlahP': totalP,
+          'totalKelas': totalPerGrade, // Total for this grade
+        });
+      }
+
+      // Calculate grand totals (overall totals for all grades combined)
+      final grandTotals = await db.rawQuery('''
+    SELECT 
+      SUM(CASE WHEN jenis_kelamin = 'Laki-Laki' THEN 1 ELSE 0 END) as totalL, 
+      SUM(CASE WHEN jenis_kelamin = 'Perempuan' THEN 1 ELSE 0 END) as totalP,
+      COUNT(*) as keseluruhan 
+    FROM students
+  ''');
+
+      if (grandTotals.isNotEmpty) {
+        final totalRow = grandTotals.first;
+        final totalL = totalRow['totalL'] as int? ?? 0;
+        final totalP = totalRow['totalP'] as int? ?? 0;
+        final keseluruhan = totalRow['keseluruhan'] as int? ?? 0;
+
+        // Add the final grand total row
+        modifiableResult.add({
+          'kelas': 'Keseluruhan Total',
+          'jumlahL': totalL,
+          'jumlahP': totalP,
+          'totalKelas': keseluruhan, // Grand total for all students
+        });
+      }
+
+      return modifiableResult;
     }
 
     Future<List<Map<String, dynamic>>> getPaymentHistoryByNis(String nis) async {

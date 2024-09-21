@@ -23,7 +23,7 @@ class _LoginPageState extends State<LoginPage> {
       if (student != null) {
         if (student['is_active'] == 0) {
           // Menangani siswa yang tidak aktif
-          _showError('Akun Anda tidak aktif. Silakan hubungi administrator.');
+          _showError('Akun Anda tidak aktif. Silakan hubungi Tata Usaha.');
         } else {
           Navigator.pushNamedAndRemoveUntil(
             context,
@@ -51,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
           arguments: staff['email'] ?? '', // Pastikan tipe argumen benar
         );
       } else {
-        _showError('Login gagal. Periksa kredensial Anda atau pendaftaran.');
+        _showError('Login Anda gagal. Periksa kredensial Anda atau pendaftaran.');
       }
     }
   }

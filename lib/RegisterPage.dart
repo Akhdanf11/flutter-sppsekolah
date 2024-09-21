@@ -213,6 +213,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     DropdownMenuItem(child: Text('VII-A'), value: 'VII-A'),
                     DropdownMenuItem(child: Text('VII-B'), value: 'VII-B'),
                     DropdownMenuItem(child: Text('VII-C'), value: 'VII-C'),
+                    DropdownMenuItem(child: Text('VII-C'), value: 'VII-D'),
+                    DropdownMenuItem(child: Text('VII-C'), value: 'VII-E'),
                     DropdownMenuItem(child: Text('VIII-A'), value: 'VIII-A'),
                     DropdownMenuItem(child: Text('VIII-B'), value: 'VIII-B'),
                     DropdownMenuItem(child: Text('VIII-C'), value: 'VIII-C'),

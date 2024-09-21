@@ -39,8 +39,7 @@ dependencies:
   printing: ^5.9.4
   pdf: ^3.8.1
   path_provider: ^2.0.11
-
-
+  csv: ^5.0.0  # Tambahkan paket csv di sini
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -61,11 +60,14 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
+
 flutter:
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
+  assets:
+    - assets/data/students.csv
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:

@@ -10,16 +10,19 @@ import 'TU/TUMainPage.dart';
 import 'db_viewer.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'CSVImporter.dart'; // Tambahkan impor file CSVImporter
 
 Future<void> deleteLocalDatabase() async {
   final dbPath = await getDatabasesPath();
   final path = join(dbPath, 'app_database.db');
-  await deleteDatabase(path); // Call the sqflite's deleteDatabase function
+  await deleteDatabase(path); // Panggil fungsi deleteDatabase dari sqflite
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await deleteLocalDatabase(); // Use the renamed function
+  await deleteLocalDatabase(); // Memanggil fungsi hapus database lokal
+  CSVImporter csvImporter = CSVImporter(); // Inisialisasi CSVImporter
+  await csvImporter.loadCSVData(); // Memanggil loadCSVData untuk impor CSV
   runApp(MyApp());
 }
 

@@ -18,7 +18,7 @@ class _ManageSPPPageState extends State<ManageSPPPage> {
   String? _selectedClass;
   List<String> _classes = [
     'Semua Kelas',
-    'VII-A', 'VII-B', 'VII-C',
+    'VII-A', 'VII-B', 'VII-C', 'VII-D', 'VII-E',
     'VIII-A', 'VIII-B', 'VIII-C',
     'IX-A', 'IX-B', 'IX-C',
   ];
