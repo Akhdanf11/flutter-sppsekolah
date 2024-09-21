@@ -22,52 +22,45 @@
       print("Creating tables");
 
       await db.execute('''
-    CREATE TABLE IF NOT EXISTS students (
-      id INTEGER PRIMARY KEY AUTOINCREMENT, 
-      email TEXT NOT NULL UNIQUE, 
-      password TEXT NOT NULL, 
-      nis TEXT NOT NULL UNIQUE, 
-      nisn TEXT,  -- New NISN column
-      student_name TEXT NOT NULL, 
-      jenis_kelamin TEXT,  -- New gender column
-      kelas TEXT,  -- New class section column
-      va_number TEXT, 
-      spp_amount REAL, 
-      spp_paid REAL, 
-      amount_due REAL,
-      is_active INTEGER DEFAULT 1  -- Add active status
-    )
-  ''');
+        CREATE TABLE IF NOT EXISTS students (
+          id INTEGER PRIMARY KEY AUTOINCREMENT, 
+          email TEXT NOT NULL UNIQUE, 
+          password TEXT NOT NULL, 
+          nis TEXT NOT NULL UNIQUE, 
+          nisn TEXT,  -- New NISN column
+          student_name TEXT NOT NULL, 
+          jenis_kelamin TEXT,  -- New gender column
+          kelas TEXT,  -- New class section column
+          va_number TEXT, 
+          spp_amount REAL,  -- Jumlah SPP per siswa
+          spp_paid REAL, 
+          amount_due REAL,
+          is_active INTEGER DEFAULT 1  -- Add active status
+        )
+        ''');
 
       await db.execute('''
-    CREATE TABLE IF NOT EXISTS staff (
-      id INTEGER PRIMARY KEY AUTOINCREMENT, 
-      email TEXT NOT NULL UNIQUE, 
-      password TEXT NOT NULL, 
-      nip TEXT NOT NULL UNIQUE, 
-      name TEXT NOT NULL
-    )
-  ''');
+        CREATE TABLE IF NOT EXISTS staff (
+          id INTEGER PRIMARY KEY AUTOINCREMENT, 
+          email TEXT NOT NULL UNIQUE, 
+          password TEXT NOT NULL, 
+          nip TEXT NOT NULL UNIQUE, 
+          name TEXT NOT NULL
+        )
+        ''');
 
       await db.execute('''
-    CREATE TABLE IF NOT EXISTS payments (
-      id INTEGER PRIMARY KEY AUTOINCREMENT, 
-      nis TEXT, 
-      payment_month INTEGER, 
-      payment_year INTEGER, 
-      payment_amount REAL, 
-      payment_date TEXT, 
-      va_number TEXT, 
-      FOREIGN KEY(nis) REFERENCES students(nis)
-    )
-  ''');
-
-      await db.execute('''
-    CREATE TABLE IF NOT EXISTS standard_amount (
-      id INTEGER PRIMARY KEY AUTOINCREMENT, 
-      amount REAL NOT NULL
-    )
-  ''');
+        CREATE TABLE IF NOT EXISTS payments (
+          id INTEGER PRIMARY KEY AUTOINCREMENT, 
+          nis TEXT, 
+          payment_month INTEGER, 
+          payment_year INTEGER, 
+          payment_amount REAL, 
+          payment_date TEXT, 
+          va_number TEXT, 
+          FOREIGN KEY(nis) REFERENCES students(nis)
+        )
+        ''');
 
       print("Tables created");
     }
@@ -81,7 +74,13 @@
         await db.execute('ALTER TABLE students ADD COLUMN jenis_kelamin TEXT');
         await db.execute('ALTER TABLE students ADD COLUMN kelas TEXT');
       }
+
+      if (oldVersion >= 4 && newVersion == 5) {
+        // Drop the standard_amount table in version 5
+        await db.execute('DROP TABLE IF EXISTS standard_amount');
+      }
     }
+
 
     Future<List<Map<String, dynamic>>> getAllStudents() async {
         final db = await instance.database;
@@ -332,7 +331,7 @@
     Future<void> updateSppPaidStatus(String nis) async {
       final db = await instance.database;
 
-      // Hitung total pembayaran siswa berdasarkan nis
+      // Hitung total pembayaran siswa berdasarkan NIS
       final totalPaidResult = await db.rawQuery(
         'SELECT SUM(payment_amount) as totalPaid FROM payments WHERE nis = ?',
         [nis],
@@ -343,16 +342,22 @@
           ? (double.tryParse(totalPaidResult.first['totalPaid'].toString()) ?? 0.0)
           : 0.0;
 
-      // Ambil jumlah standar yang harus dibayar dari tabel standard_amount
-      final standardAmountResult = await db.query('standard_amount', limit: 1);
+      // Ambil jumlah SPP yang harus dibayar dari tabel students berdasarkan NIS
+      final studentResult = await db.query(
+        'students',
+        columns: ['spp_amount'],
+        where: 'nis = ?',
+        whereArgs: [nis],
+        limit: 1,
+      );
 
-      // Pastikan nilai standardAmount di-cast ke tipe double
-      final standardAmount = standardAmountResult.isNotEmpty
-          ? (double.tryParse(standardAmountResult.first['amount'].toString()) ?? 0.0)
+      // Pastikan nilai spp_amount di-cast ke tipe double
+      final sppAmount = studentResult.isNotEmpty
+          ? (double.tryParse(studentResult.first['spp_amount'].toString()) ?? 0.0)
           : 0.0;
 
-      // Jika total yang dibayarkan lebih besar atau sama dengan jumlah standar, anggap SPP sudah dibayar
-      int sppPaid = totalPaid >= standardAmount ? 1 : 0;
+      // Jika total yang dibayarkan lebih besar atau sama dengan jumlah SPP, anggap SPP sudah dibayar
+      int sppPaid = totalPaid >= sppAmount ? 1 : 0;
 
       // Perbarui kolom spp_paid di tabel students berdasarkan NIS
       await db.update(
@@ -364,6 +369,7 @@
         whereArgs: [nis],
       );
     }
+
 
     // Add this method to update a student's SPP amount
     Future<void> updateSppAmount(String nis, double newAmount) async {

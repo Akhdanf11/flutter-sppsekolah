@@ -84,7 +84,7 @@ class _StudentMainPageState extends State<StudentMainPage> {
     } else if (hour < 17) {
       return 'Siang';
     } else {
-      return 'Sore';
+      return 'Malam';
     }
   }
 

@@ -368,7 +368,6 @@ class _AllStudentsReportPageState extends State<AllStudentsReportPage> {
                       'P',
                       'Jumlah L+P',
                       'Total per Kelas',
-                      'Keseluruhan'
                     ],
                     data: recapData.asMap().entries.map((entry) {
                       final index = entry.key + 1; // Start numbering from 1
@@ -376,9 +375,6 @@ class _AllStudentsReportPageState extends State<AllStudentsReportPage> {
 
                       final totalLP = recap['jumlahL'] + recap['jumlahP']; // Total L + P
                       final totalPerKelas = recap['totalKelas'].toString(); // Total for this class/grade
-                      final keseluruhan = recap.containsKey('keseluruhan')
-                          ? recap['keseluruhan'].toString()
-                          : ''; // Grand total row for all grades
 
                       return [
                         index.toString(),               // No
@@ -387,7 +383,6 @@ class _AllStudentsReportPageState extends State<AllStudentsReportPage> {
                         recap['jumlahP'].toString(),    // Number of Females (P)
                         totalLP.toString(),             // Total L + P
                         totalPerKelas,                  // Total for each grade
-                        keseluruhan,                    // Grand total
                       ];
                     }).toList(),
                   ),
