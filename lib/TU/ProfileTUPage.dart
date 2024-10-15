@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../database_helper.dart'; // Pastikan path ini benar berdasarkan struktur file Anda
+import '../database_helper.dart';
 
 class ProfileTUPage extends StatefulWidget {
   final String email;
@@ -73,7 +73,7 @@ class _ProfileTUPageState extends State<ProfileTUPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Atur warna latar belakang sesuai keinginan
+      backgroundColor: Colors.white,
       body: _profileData == null
           ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -94,7 +94,7 @@ class _ProfileTUPageState extends State<ProfileTUPage> {
     if (_profileData == null) return SizedBox.shrink();
 
     return Container(
-      width: MediaQuery.of(context).size.width * 0.9, // Mengatur lebar Card sesuai persentase lebar layar
+      width: MediaQuery.of(context).size.width * 0.9,
       child: Card(
         elevation: 5,
         shape: RoundedRectangleBorder(
@@ -119,7 +119,7 @@ class _ProfileTUPageState extends State<ProfileTUPage> {
 
   Widget _buildPasswordChangeSection() {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.9, // Mengatur lebar Card sesuai persentase lebar layar
+      width: MediaQuery.of(context).size.width * 0.9,
       child: Card(
         elevation: 5,
         shape: RoundedRectangleBorder(

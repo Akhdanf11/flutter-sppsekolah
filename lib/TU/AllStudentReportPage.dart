@@ -53,8 +53,11 @@ class _AllStudentsReportPageState extends State<AllStudentsReportPage> {
     final file = File('${directory.path}/all_students_report.pdf');
     await file.writeAsBytes(await pdf.save());
 
-    // Share the PDF file
-    await Share.shareFiles([file.path], text: 'Laporan Data Seluruh Siswa');
+    // Create an XFile from the file path
+    final xFile = XFile(file.path);
+
+    // Share the PDF file using shareXFiles
+    await Share.shareXFiles([xFile], text: 'Laporan Data Seluruh Siswa');
   }
 
   Future<pw.Document> _createPdf() async {

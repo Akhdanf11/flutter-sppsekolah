@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'database_helper.dart'; // Pastikan import ini sesuai dengan struktur proyek Anda
+import 'database_helper.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -32,8 +32,8 @@ class _LoginPageState extends State<LoginPage> {
             arguments: {
               'nis': student['nis'],
               'email': student['email'],
-              'student_name': student['student_name'], // Kirim student_name
-              'student_id': student['id'], // Kirim student_id
+              'student_name': student['student_name'],
+              'student_id': student['id'],
             },
           );
         }
@@ -46,9 +46,9 @@ class _LoginPageState extends State<LoginPage> {
       if (staff != null) {
         Navigator.pushNamedAndRemoveUntil(
           context,
-          '/tumain_page', // Nama route yang diperbarui
-              (route) => false, // Hapus semua route sebelumnya
-          arguments: staff['email'] ?? '', // Pastikan tipe argumen benar
+          '/tumain_page',
+              (route) => false,
+          arguments: staff['email'] ?? '',
         );
       } else {
         _showError('Login Anda gagal. Periksa kredensial Anda atau pendaftaran.');
@@ -142,10 +142,10 @@ class _LoginPageState extends State<LoginPage> {
                 child: Text('Masuk'),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
-                  backgroundColor: Colors.blueAccent, // Warna teks tombol
-                  padding: EdgeInsets.symmetric(vertical: 16), // Tinggi tombol
-                  textStyle: TextStyle(fontSize: 18), // Ukuran teks tombol
-                  minimumSize: Size(double.infinity, 50), // Lebar tombol
+                  backgroundColor: Colors.blueAccent,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  textStyle: TextStyle(fontSize: 18),
+                  minimumSize: Size(double.infinity, 50),
                 ),
               ),
               SizedBox(height: 20),

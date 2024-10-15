@@ -66,7 +66,7 @@ class _ManageStudentsPageState extends State<ManageStudentsPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Sekarang Kelas: $selectedClass'), // Display current class
+              Text('Sekarang Kelas: $selectedClass'),
               SizedBox(height: 20),
               DropdownButtonFormField<String>(
                 decoration: InputDecoration(
@@ -82,7 +82,7 @@ class _ManageStudentsPageState extends State<ManageStudentsPage> {
                 }).toList(),
                 onChanged: (newClass) {
                   setState(() {
-                    selectedClass = newClass; // Update selected class
+                    selectedClass = newClass;
                   });
                 },
                 isExpanded: true,
@@ -107,7 +107,7 @@ class _ManageStudentsPageState extends State<ManageStudentsPage> {
                   whereArgs: [student['id']],
                 );
                 Navigator.of(context).pop();
-                _loadStudents(selectedClass: _selectedClass); // Reload students
+                _loadStudents(selectedClass: _selectedClass);
               },
             ),
           ],
@@ -125,7 +125,7 @@ class _ManageStudentsPageState extends State<ManageStudentsPage> {
       ),
       body: Column(
         children: [
-          _buildClassDropdown(), // Add the dropdown for class selection
+          _buildClassDropdown(),
           Expanded(
             child: _students.isEmpty
                 ? Center(child: Text('Tidak ada data siswa.'))

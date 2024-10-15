@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:csv/csv.dart';
-import 'database_helper.dart'; // Ensure you have this file
+import 'database_helper.dart';
 
 class CSVImporter {
   // Function to parse CSV string into a list of maps
@@ -12,7 +12,7 @@ class CSVImporter {
     List<String> headers = rowsAsListOfValues.first.cast<String>();
 
     // Extract each row and map it to a student record
-    for (var i = 1; i < rowsAsListOfValues.length; i++) { // Start from the second row (skip headers)
+    for (var i = 1; i < rowsAsListOfValues.length; i++) {
       Map<String, String> student = {};
       for (var j = 0; j < headers.length; j++) {
         student[headers[j]] = rowsAsListOfValues[i][j].toString();
@@ -44,7 +44,8 @@ class CSVImporter {
         String jenisKelamin = student['jenis_kelamin'] ?? 'N/A';
         String kelas = student['kelas']?.trim() ?? 'N/A';
 
-        print('Importing student: $email, $nis, $nisn, $studentName, $jenisKelamin, $kelas'); // Debug line
+        // Debug line
+        print('Importing student: $email, $nis, $nisn, $studentName, $jenisKelamin, $kelas');
 
         // Register the student in the database
         await DatabaseHelper.instance.registerStudent(

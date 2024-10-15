@@ -198,7 +198,7 @@ class _ManageSPPPageState extends State<ManageSPPPage> {
           actions: [
             IconButton(
               icon: Icon(Icons.attach_money_rounded),
-              onPressed: _showGlobalUpdateDialog, // Show global update dialog
+              onPressed: _showGlobalUpdateDialog,
             ),
           ],
           bottom: TabBar(

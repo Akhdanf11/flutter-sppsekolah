@@ -90,8 +90,13 @@ class _ReportPageState extends State<ReportPage> {
     final file = File('${directory.path}/report.pdf');
     await file.writeAsBytes(await pdf.save());
 
-    Share.shareFiles([file.path], text: 'Laporan SPP');
+    // Create an XFile from the file path
+    final xFile = XFile(file.path);
+
+    // Use Share.shareXFiles to share the PDF
+    await Share.shareXFiles([xFile], text: 'Laporan SPP');
   }
+
 
   Future<void> _printPdf() async {
     await Printing.layoutPdf(

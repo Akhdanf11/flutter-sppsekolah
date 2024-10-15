@@ -25,7 +25,7 @@ class PaymentHistoryPage extends StatelessWidget {
 
   // Function to format dates
   String _formatDate(String date) {
-    final formatDate = DateFormat('dd MMMM yyyy'); // Ensure this matches the PrintReceiptPage format
+    final formatDate = DateFormat('dd MMMM yyyy');
     return formatDate.format(DateTime.parse(date));
   }
 

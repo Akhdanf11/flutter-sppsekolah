@@ -13,7 +13,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _nisController = TextEditingController();
   final TextEditingController _nisnController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _nipController = TextEditingController(); // For Staff NIP
+  final TextEditingController _nipController = TextEditingController();
 
   String _selectedRole = 'Siswa'; // Default role
   String _selectedGender = 'Laki-Laki'; // Default gender
@@ -27,7 +27,7 @@ class _RegisterPageState extends State<RegisterPage> {
     final nis = _nisController.text.trim();
     final nisn = _nisnController.text.trim();
     final name = _nameController.text.trim();
-    final nip = _nipController.text.trim(); // Corrected NIP for staff
+    final nip = _nipController.text.trim();
     final gender = _selectedGender;
     final classSection = _selectedClass;
 
@@ -76,8 +76,8 @@ class _RegisterPageState extends State<RegisterPage> {
         await DatabaseHelper.instance.registerStaff(
           email,
           password,
-          name,  // Ensure this is the correct 'name' for Tata Usaha
-          nip,   // Corrected to store NIP instead of phoneNumber
+          name,
+          nip,
         );
       }
 
@@ -242,7 +242,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 SizedBox(height: 16),
                 TextField(
-                  controller: _nipController, // NIP input for staff
+                  controller: _nipController,
                   decoration: InputDecoration(
                     labelText: 'NIP',
                     border: OutlineInputBorder(),
@@ -257,10 +257,10 @@ class _RegisterPageState extends State<RegisterPage> {
                 child: Text('Daftar'),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
-                  backgroundColor: Colors.blueAccent, // Warna teks tombol
-                  padding: EdgeInsets.symmetric(vertical: 16), // Tinggi tombol
-                  textStyle: TextStyle(fontSize: 18), // Ukuran teks tombol
-                  minimumSize: Size(double.infinity, 50), // Lebar tombol
+                  backgroundColor: Colors.blueAccent,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  textStyle: TextStyle(fontSize: 18),
+                  minimumSize: Size(double.infinity, 50),
                 ),
               ),
               SizedBox(height: 20),

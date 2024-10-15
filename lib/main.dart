@@ -7,20 +7,10 @@ import 'TU/ManageSiswa.dart';
 import 'TU/ManageSPP.dart';
 import 'TU/ProfileTUPage.dart';
 import 'TU/TUMainPage.dart';
-import 'db_viewer.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
-import 'CSVImporter.dart'; // Tambahkan impor file CSVImporter
-
-Future<void> deleteLocalDatabase() async {
-  final dbPath = await getDatabasesPath();
-  final path = join(dbPath, 'app_database.db');
-  await deleteDatabase(path); // Panggil fungsi deleteDatabase dari sqflite
-}
+import 'CSVImporter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await deleteLocalDatabase(); // Memanggil fungsi hapus database lokal
   CSVImporter csvImporter = CSVImporter(); // Inisialisasi CSVImporter
   await csvImporter.loadCSVData(); // Memanggil loadCSVData untuk impor CSV
   runApp(MyApp());
@@ -48,7 +38,7 @@ class MyApp extends StatelessWidget {
               builder: (context) => StudentMainPage(
                 email: args['email'] ?? '',
                 studentName: args['student_name'] ?? '',
-                nis: args['nis'] ?? '', // Ensure nis is passed
+                nis: args['nis'] ?? '',
               ),
             );
           case '/profile_student_page':
@@ -67,7 +57,7 @@ class MyApp extends StatelessWidget {
             final args = settings.arguments as Map<String, dynamic>;
             return MaterialPageRoute(
               builder: (context) => ManageSPPPage(
-                email: args['email'] ?? '', // Ensure email is passed
+                email: args['email'] ?? '',
               ),
             );
           case '/profile_tu':
@@ -75,8 +65,6 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(
               builder: (context) => ProfileTUPage(email: email ?? ''),
             );
-          case '/db_viewer':
-            return MaterialPageRoute(builder: (context) => DatabaseViewerScreen());
           case '/tumain_page':
             final email = settings.arguments as String?;
             return MaterialPageRoute(

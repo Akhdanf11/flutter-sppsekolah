@@ -22,7 +22,7 @@ class _StudentPaymentPageState extends State<StudentPaymentPage> {
   String _vaNumber = '';
   String _studentName = '';
   String _nis = '';
-  String _amountError = ''; // To hold error message
+  String _amountError = '';
 
   @override
   void initState() {
@@ -72,7 +72,6 @@ class _StudentPaymentPageState extends State<StudentPaymentPage> {
         return;
       }
 
-      // Generate VA number logic (ensure this matches your actual generation logic)
       final vaNumber = _vaNumber;
 
       // Update payment details
@@ -91,7 +90,7 @@ class _StudentPaymentPageState extends State<StudentPaymentPage> {
         SnackBar(content: Text('Pembayaran berhasil dicatat.')),
       );
 
-      Navigator.of(context).pop(true); // Return true to indicate success
+      Navigator.of(context).pop(true);
     } catch (e) {
       print('Error recording payment: $e');
       ScaffoldMessenger.of(context).showSnackBar(

@@ -24,7 +24,6 @@ class _StudentMainPageState extends State<StudentMainPage> {
 
   List<Widget> _buildPages() {
     return [
-      // Halaman Utama dengan tombol untuk "Riwayat Pembayaran" dan "Bayar SPP"
       Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -110,7 +109,7 @@ class _StudentMainPageState extends State<StudentMainPage> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Tutup dialog
+                Navigator.of(context).pop();
               },
               child: Text('Batal'),
             ),
@@ -144,7 +143,7 @@ class _StudentMainPageState extends State<StudentMainPage> {
       body: _buildPages()[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: _onItemTapped, // Tangani ketukan item BottomNavigationBar
+        onTap: _onItemTapped,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),

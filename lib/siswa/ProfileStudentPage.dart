@@ -104,7 +104,7 @@ class _ProfileStudentPageState extends State<ProfileStudentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Atur warna latar belakang sesuai keinginan
+      backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

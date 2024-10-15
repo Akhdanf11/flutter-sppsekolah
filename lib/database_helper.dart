@@ -262,12 +262,14 @@
       try {
         final result = await db.query(
           'students',
-          where: 'email = ? AND password = ? AND is_active = 1', // Ensure student is active
+          // Ensure student is active
+          where: 'email = ? AND password = ? AND is_active = 1',
           whereArgs: [email, password],
         );
 
         if (result.isNotEmpty) {
-          return result.first; // Return the first matching student record
+          // Return the first matching student record
+          return result.first;
         } else {
           print('Student not found, incorrect password, or account is not active');
           return null;
@@ -317,14 +319,14 @@
       await db.insert(
         'payments',
         {
-          'nis': nis,                       // Student's NIS
-          'payment_amount': amount,          // Payment amount
-          'payment_month': paymentMonth,     // Payment month
-          'payment_year': paymentYear,       // Payment year
-          'payment_date': DateTime.now().toIso8601String(), // Current date as payment date
-          'va_number': vaNumber,             // Virtual Account number
+          'nis': nis,
+          'payment_amount': amount,
+          'payment_month': paymentMonth,
+          'payment_year': paymentYear,
+          'payment_date': DateTime.now().toIso8601String(),
+          'va_number': vaNumber,
         },
-        conflictAlgorithm: ConflictAlgorithm.replace, // Replace if conflict
+        conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
 
@@ -363,7 +365,8 @@
       await db.update(
         'students',
         {
-          'spp_paid': sppPaid, // 1 jika sudah dibayar, 0 jika belum
+          // 1 jika sudah dibayar, 0 jika belum
+          'spp_paid': sppPaid,
         },
         where: 'nis = ?',
         whereArgs: [nis],
@@ -533,10 +536,10 @@
         final totalPerGrade = totalL + totalP;
 
         modifiableResult.add({
-          'kelas': '${row['gradeCategory']} Total', // e.g., "VII Total"
+          'kelas': '${row['gradeCategory']} Total',
           'jumlahL': totalL,
           'jumlahP': totalP,
-          'totalKelas': totalPerGrade, // Total for this grade
+          'totalKelas': totalPerGrade,
         });
       }
 
@@ -560,7 +563,7 @@
           'kelas': 'Keseluruhan Total',
           'jumlahL': totalL,
           'jumlahP': totalP,
-          'totalKelas': keseluruhan, // Grand total for all students
+          'totalKelas': keseluruhan,
         });
       }
 

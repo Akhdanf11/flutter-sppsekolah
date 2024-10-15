@@ -52,11 +52,19 @@ class PrintReceiptPage extends StatelessWidget {
       final file = File('${directory.path}/receipt.pdf');
       await file.writeAsBytes(await pdf.save());
 
-      Share.shareFiles([file.path], text: 'Struk Pembayaran');
+      // Create an XFile from the file path
+      final xFile = XFile(file.path);
+
+      // Use Share.share instead of Share.shareFiles
+      await Share.share('Struk Pembayaran', subject: 'Receipt', sharePositionOrigin: Rect.fromLTWH(0, 0, 0, 0));
+      // Sharing the PDF file
+      await Share.shareXFiles([xFile], text: 'Struk Pembayaran');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error sharing receipt: $e')));
     }
   }
+
+
 
   String formatCurrency(double amount) {
     final format = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);

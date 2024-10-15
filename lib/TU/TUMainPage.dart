@@ -18,7 +18,7 @@ class _TUMainPageState extends State<TUMainPage> {
 
   List<Widget> _getPages() {
     return [
-      HomePage(email: widget.email), // Update: Pass email to HomePage
+      HomePage(email: widget.email),
       ProfileTUPage(email: widget.email),
     ];
   }
@@ -39,14 +39,14 @@ class _TUMainPageState extends State<TUMainPage> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop();
               },
               child: Text('Batal'),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                Navigator.of(context).pushReplacementNamed('/login'); // Redirect to login page
+                Navigator.of(context).pushReplacementNamed('/login');
               },
               child: Text('Keluar'),
             ),
@@ -85,9 +85,9 @@ class _TUMainPageState extends State<TUMainPage> {
         backgroundColor: Colors.white,
         onTap: (index) {
           if (index == 2) {
-            _showLogoutDialog(context); // Handle logout separately
+            _showLogoutDialog(context);
           } else {
-            _onItemTapped(index); // Navigate between pages
+            _onItemTapped(index);
           }
         },
       ),
